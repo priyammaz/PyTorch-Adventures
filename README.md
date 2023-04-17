@@ -1,4 +1,4 @@
-# National Center of Supercomputing Applications HAL Tutorials
+# NCSA HAL Tutorials
 
 The National Center for Supercomputing Applications Center of AI Innovation at the Univerity of Illinois
 Urbana-Champaign hosts many HAL tutorials dedicated to give newcomers to the 
