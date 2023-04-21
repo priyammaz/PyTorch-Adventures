@@ -16,6 +16,19 @@ to setup an account.
 If you prefer to use [Google Colaboratory](https://colab.research.google.com/), that will also work fine! You will
 just need to setup the environment for specific packages needed (Easy pip installs to get those)
 
+
+### Data Prep ###
+We will be using a couple of datasets in our Deep Learning Adventures!!
+- Cats Vs Dogs
+- IMBD Movie Reviews
+- MNIST Handwritten Digits
+- Harry Potter Corups
+
+Ensure you have a */data* folder in your root directory of the git repo and run the following to install all datasets
+```angular2html
+bash download_data.sh 
+```
+
 ### Intro to PyTorch
 
 [![button](src/visuals/play_button.png)](https://www.youtube.com/watch?v=QzJql9AOGt4) &nbsp;[Get Started with PyTorch!!](Intro%20to%20PyTorch)
