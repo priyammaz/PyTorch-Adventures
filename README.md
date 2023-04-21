@@ -33,7 +33,7 @@ Understanding these tools and techniques should give you a fairly good intuition
 and should get you started on most types of problems
 
 ### Intro to Pre-Trained Models
-[![button](src/visuals/play_button.png)](https://www.youtube.com/watch?v=QzJql9AOGt4) &nbsp;[Get Started with PreTrained Models!!](PreTrained%20Models)
+[![button](src/visuals/play_button.png)](https://www.youtube.com/watch?v=QzJql9AOGt4) &nbsp;[Get Started with PreTrained Models!!](Leveraging%20Pre-Trained%20Models)
 
 Most niche problems don't have large datasets so a typical strategy is to start with a Pre-Trained model 
 on one task and transfer that knowledge to the new task of interest. To do so we will be attempting to 
