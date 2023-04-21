@@ -1,10 +1,13 @@
-# NCSA PyTorch Tutorial
+# Intro to PyTorch  &nbsp; ![button](../src/visuals/play_button.png)
 
-Deep Learning has revolutionized AI architectures and it is vital to learn the tools to build these models! The National Center for Supercomputing Applications (NCSA) provides training to all students to learn the tools to build AI algorithms in an HPC environment and this notebook gives a rigorous introduction to PyTorch. Through this notebook we will cover:
-- PyTorch Basics
+Deep Learning has revolutionized AI architectures and it is vital to learn the tools to build these models! 
+We will cover the following ideas to get acquanited with the PyTorch system and review some basic ideas!
+
+- PyTorch Fundamentals
     - Tensors
     - AutoGrad
-- Linear Regression via Stochastic Gradient Descent
-- Image Classification via Fully Connected Neural Network
-- Image Classification via Convolutional Neural Network
-- Autoencoders for Image Compression
+- Optimization through Gradient Descent
+- Linear Regression and Mean Squared Error Loss
+- Logistic Regression and Binary Cross Entropy Loss
+- MNIST Classification with Dense Neural Network
+- Utilizing GPU to accelerate compute
