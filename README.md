@@ -1,5 +1,8 @@
-# NCSA HAL Tutorials
+# Deep Learning from End to End
 
+![banner](src/visuals/banner.png)
+
+---
 The National Center for Supercomputing Applications Center of AI Innovation at the Univerity of Illinois
 Urbana-Champaign hosts many HAL tutorials dedicated to give newcomers to the 
 fields of AI a practical first look at the tools needed to perform research in 
@@ -14,6 +17,9 @@ If you prefer to use [Google Colaboratory](https://colab.research.google.com/), 
 just need to setup the environment for specific packages needed (Easy pip installs to get those)
 
 ### Intro to PyTorch
+
+[![button](src/visuals/play_button.png)](https://www.youtube.com/watch?v=QzJql9AOGt4) &nbsp;[Get Started with PyTorch!!](Intro%20to%20PyTorch)
+
 In this tutorial you will get an in depth look at PyTorch and the fundamentals of training models. We will cover
 - **PyTorch Basics**:
   - Tensors
@@ -27,6 +33,8 @@ Understanding these tools and techniques should give you a fairly good intuition
 and should get you started on most types of problems
 
 ### Intro to Pre-Trained Models
+[![button](src/visuals/play_button.png)](https://www.youtube.com/watch?v=QzJql9AOGt4) &nbsp;[Get Started with PreTrained Models!!](PreTrained%20Models)
+
 Most niche problems don't have large datasets so a typical strategy is to start with a Pre-Trained model 
 on one task and transfer that knowledge to the new task of interest. To do so we will be attempting to 
 classify images of Dogs vs Cats with a few different methods:
@@ -51,6 +59,8 @@ of the ideas hold true regardless of architectures. More specifically we will be
 - Understanding why Layer Normalization is prefered over Batch Normalization
 
 ### Materials to Come!!!
+- [ ] PyTorch DataLoaders
+- [ ] Residual and Skip Connections
 - [ ] Advanced PyTorch tutorials on Sequence Data
 - [ ] Deep Dive into the Huggingface Ecosystem
 - [ ] Build and Train a GPT Model From Scratch (using Torch only!!!)
