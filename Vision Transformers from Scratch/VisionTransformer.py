@@ -197,7 +197,7 @@ class VisionTransformer(nn.Module):
                                       embed_dim=embed_dim)
 
         self.cls_token = nn.Parameter(torch.zeros(1,1,embed_dim))
-        self.pos_embed = nn.Parameter((torch.zeros(1, 1+self.patch_embed.n_patches, embed_dim)))
+        self.pos_embed = nn.Parameter((torch.randn(1, 1+self.patch_embed.n_patches, embed_dim)))
         self.pos_drop = nn.Dropout(pos_drop)
 
         self.blocks = nn.ModuleList(
@@ -244,6 +244,7 @@ def train(model, device, epochs, optimizer,
 
     best_val_loss = np.inf
     for epoch in range(1, epochs + 1):
+        print(model.cls_token)
         print(f"Starting Epoch {epoch}")
         training_losses, training_accuracies = [], []
         validation_losses, validation_accuracies = [], []
@@ -306,15 +307,16 @@ def train(model, device, epochs, optimizer,
 
 if __name__ == "__main__":
     ViT = VisionTransformer(embed_dim=384,
-                            depth=6,
-                            num_heads=6,
+                            depth=2,
+                            num_heads=2,
                             efficient=True)
+    rand_tensor = torch.randn((2, 3, 224, 224))
 
     params = sum([np.prod(p.size()) for p in ViT.parameters()])
     print(f"Total Number of Parameters: {params}")
 
     ### SETUP DATASET ###
-    PATH_TO_DATA = "../data/dogsvcats"
+    PATH_TO_DATA = "../../HAL Training/data/dogsvcats"
     dataset = ImageFolder(PATH_TO_DATA)
 
     normalizer = Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
