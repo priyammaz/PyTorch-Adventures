@@ -3,7 +3,7 @@
 ![banner](src/visuals/banner.png)
 
 ---
-The National Center for Supercomputing Applications Center of AI Innovation at the Univerity of Illinois
+The National Center for Supercomputing Applications Center of AI Innovation at the University of Illinois
 Urbana-Champaign hosts many HAL tutorials dedicated to give newcomers to the 
 fields of AI a practical first look at the tools needed to perform research in 
 this area. 
