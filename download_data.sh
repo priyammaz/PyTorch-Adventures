@@ -18,7 +18,7 @@ wget https://raw.githubusercontent.com/formcept/whiteboard/master/nbviewer/noteb
 wget https://raw.githubusercontent.com/formcept/whiteboard/master/nbviewer/notebooks/data/harrypotter/Book%207%20-%20The%20Deathly%20Hallows.txt -P data/harry_potter_txt/
 
 ### Run Prep Data ###
-python -m prep_data
+python -m prep_data -p data --all
 
 ### Cleanup ###
 rm data/aclImdb_v1.tar.gz
