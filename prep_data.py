@@ -7,7 +7,7 @@ import argparse
 
 parser = argparse.ArgumentParser("Data Preperation Script")
 
-parser.add_argument("-p", "--path", type=str, required=True, help="Path to Data Root")
+parser.add_argument("-p", "--path", type=str, help="Path to Data Root")
 parser.add_argument("--all", action="store_true")
 parser.add_argument("--catsvdogs", action="store_true")
 parser.add_argument("--mnist", action="store_true")
