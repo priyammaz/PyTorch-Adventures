@@ -1,7 +1,10 @@
 import os
 from torch.utils.data import Dataset
 from torchvision import transforms
-from PIL import Image
+from PIL import Image, ImageFile
+
+### Some Images are Truncated so we will allow them! ###
+ImageFile.LOAD_TRUNCATED_IMAGES = True 
 
 class DogsVsCats(Dataset):
     """
