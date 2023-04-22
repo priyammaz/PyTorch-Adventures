@@ -1,6 +1,5 @@
 # PyTorch Datasets and DataLoaders
 
----
 There is no way to train a model without first knowing how to work with different data types and load them in an 
 efficient manner. For this we will explore the incredible PyTorch Dataset and DataLoader that handles most of the heavy lifting for you!!
 We will be focusing on two domains in this part:
