@@ -33,17 +33,36 @@ bash download_data.sh
 
 [![button](src/visuals/play_button.png)](https://www.youtube.com/watch?v=QzJql9AOGt4) &nbsp;[Get Started with PyTorch!!](Intro%20to%20PyTorch)
 
-In this tutorial you will get an in depth look at PyTorch and the fundamentals of training models. We will cover
-- **PyTorch Basics**:
-  - Tensors
-  - AutoGrad
-- Linear Regression Via Stochastic Gradient Descent
-- Image Classification (MNIST) via Fully Connected Neural Network
-- Image Classification (MNIST) via Convolutional Neural Network
-- AutoEncoders for Image Compression
+Deep Learning has revolutionized AI architectures and it is vital to learn the tools to build these models! 
+We will cover the following ideas to get acquanited with the PyTorch system and review some basic ideas!
+
+- PyTorch Fundamentals
+    - Tensors
+    - AutoGrad
+- Optimization through Gradient Descent
+- Linear Regression and Mean Squared Error Loss
+- Logistic Regression and Binary Cross Entropy Loss
+- MNIST Classification with Dense Neural Network
+- Utilizing GPU to accelerate compute
 
 Understanding these tools and techniques should give you a fairly good intuition on how PyTorch functions
 and should get you started on most types of problems
+
+### PyTorch DataLoaders
+[Get Started with Datasets and Dataloaders!!](PyTorch%20DataLoaders)
+
+There is no way to train a model without first knowing how to work with different data types and load them in an 
+efficient manner. For this we will explore the incredible PyTorch Dataset and DataLoader that handles most of the heavy lifting for you!!
+We will be focusing on two domains in this part:
+
+1) Computer Vision 
+   1) How to Build a custom PyTorch Dataset for the Dogs Vs Cats Data 
+   2) Some introduction to the Transforms module in Torchvision 
+2) Natural Language 
+   1) How to load sequence data for the IMBD dataset
+   2) Custom data collator to manage sequences of different lengths
+
+Once we have built custom datasets, we will then look how to wrap it in the DataLoader to enable us to grab minibatches!!
 
 ### Intro to Pre-Trained Models
 [![button](src/visuals/play_button.png)](https://www.youtube.com/watch?v=QzJql9AOGt4) &nbsp;[Get Started with PreTrained Models!!](Leveraging%20Pre-Trained%20Models)
@@ -56,6 +75,9 @@ classify images of Dogs vs Cats with a few different methods:
 - Leverage the widely popular HuggingFace 🤗 repository to complete the same task
 
 ### Vision Transformers from Scratch 
+
+[Get Started with Vision Transformers!!](Dive%20Into%20Attention%20with%20Vision%20Transformers)
+
 Transformers have revolutionized Deep Learning and is the predominant architecture of choice for almost all
 state-of-the-art models. The most unique aspect of the model is the ability to process any type of data. Where
 previously we would typically use Convolutions for image tasks and RNN/LSTM type models for sequence tasks,
