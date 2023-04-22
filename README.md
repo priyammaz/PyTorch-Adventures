@@ -36,7 +36,8 @@ Ensure you have a */data* folder in your root directory of the git repo and run 
 bash download_data.sh 
 ```
 
-### Intro to PyTorch
+### Intro to PyTorch [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1YQanR0ME7ThsU9YwLzXhGvYGOdH2ErSa?usp=sharing)
+
 
 [![button](src/visuals/play_button.png)](https://www.youtube.com/watch?v=QzJql9AOGt4) &nbsp;[Get Started with PyTorch!!](Intro%20to%20PyTorch)
 
@@ -55,8 +56,8 @@ We will cover the following ideas to get acquainted with the PyTorch system and 
 Understanding these tools and techniques should give you a fairly good intuition on how PyTorch functions
 and should get you started on most types of problems
 
-### PyTorch DataLoaders
-[Get Started with Datasets and Dataloaders!!](PyTorch%20DataLoaders)
+### PyTorch DataLoaders [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1nurV-kJmoPYlXP-qNAGGLsFXuS3lpNil?usp=sharing)
+[Get Started with Datasets and Dataloaders!!](PyTorch%20DataLoaders) 
 
 There is no way to train a model without first knowing how to work with different data types and load them in an 
 efficient manner. For this we will explore the PyTorch Dataset and DataLoader that handles most of the heavy lifting for you!!
