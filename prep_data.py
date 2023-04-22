@@ -18,15 +18,20 @@ if args.all is True:
     args.catsvdogs = True
     args.mnist = True
 
+if args.path is None:
+    args.path = ""
+
 if args.catsvdogs:
     ### Unpack and Save CatsVsDogs ###
     print("Unpacking CatsvsDogs")
-    with zipfile.ZipFile(f"{args.path}/kagglecatsanddogs_5340.zip", "r") as zip:
+    path_to_catvdog_zip = os.path.join(args.path, "kagglecatsanddogs_5340.zip")
+    with zipfile.ZipFile(path_to_catvdog_zip, "r") as zip:
         zip.extractall(args.path)
 
     ### Clean Up CatsVDogs ###
-    path_to_cats = os.path.join(f"{args.path}/PetImages/", "Cat") # Get Path to Cat folder
-    path_to_dogs = os.path.join(f"{args.path}/PetImages/", "Dog") # Get Path to Dog folder
+    path_to_catvdog = os.path.join(args.path, "PetImages")
+    path_to_cats = os.path.join(path_to_catvdog, "Cat") # Get Path to Cat folder
+    path_to_dogs = os.path.join(path_to_catvdog, "Dog") # Get Path to Dog folder
 
     dog_files = os.listdir(path_to_dogs) # Get list of all files inside of dog folder
     cat_files = os.listdir(path_to_cats) # Get list of all files inside cat folder
