@@ -36,70 +36,63 @@ Ensure you have a */data* folder in your root directory of the git repo and run 
 bash download_data.sh 
 ```
 
-### Intro to PyTorch [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1YQanR0ME7ThsU9YwLzXhGvYGOdH2ErSa?usp=sharing)
+## Foundations
+- [**Intro to PyTorch**](Intro%20to%20PyTorch) &nbsp;[![button](src/visuals/play_button_small.png)](https://www.youtube.com/watch?v=QzJql9AOGt4)  &nbsp; [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1YQanR0ME7ThsU9YwLzXhGvYGOdH2ErSa?usp=sharing)
 
 
-[![button](src/visuals/play_button.png)](https://www.youtube.com/watch?v=QzJql9AOGt4) &nbsp;[Get Started with PyTorch!!](Intro%20to%20PyTorch)
+- [**PyTorch DataLoaders**](PyTorch%20DataLoaders) &nbsp; [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1nurV-kJmoPYlXP-qNAGGLsFXuS3lpNil?usp=sharing)
 
-Deep Learning has revolutionized AI architectures, and it is vital to learn the tools to build these models! 
-We will cover the following ideas to get acquainted with the PyTorch system and review some basics!
 
-- PyTorch Fundamentals
-    - Tensors
-    - AutoGrad
-- Optimization through Gradient Descent
-- Linear Regression and Mean Squared Error Loss
-- Logistic Regression and Binary Cross Entropy Loss
-- MNIST Classification with Dense Neural Network
-- Utilizing GPU to accelerate compute
+- [**Basics of Transfer Learning**](Basics%20of%20Transfer%20Learning) &nbsp; [![button](src/visuals/play_button_small.png)](https://www.youtube.com/watch?v=QzJql9AOGt4) 
 
-Understanding these tools and techniques should give you a fairly good intuition on how PyTorch functions
-and should get you started on most types of problems
 
-### PyTorch DataLoaders [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1nurV-kJmoPYlXP-qNAGGLsFXuS3lpNil?usp=sharing)
-[Get Started with Datasets and Dataloaders!!](PyTorch%20DataLoaders) 
+- **PyTorch for Vision: Convolutions**
 
-There is no way to train a model without first knowing how to work with different data types and load them in an 
-efficient manner. For this we will explore the PyTorch Dataset and DataLoader that handles most of the heavy lifting for you!!
-We will be focusing on two domains in this part:
 
-1) Computer Vision 
-   1) How to Build a custom PyTorch Dataset for the Dogs Vs Cats Data 
-   2) Some introduction to the Transforms module in Torchvision 
-2) Natural Language 
-   1) How to load sequence data for the IMBD dataset
-   2) Custom data collator to manage sequences of different lengths
+- **Going Deeper with Deep Learning: Residual Connections**
 
-Once we have built custom datasets, we will then look how to wrap it in the DataLoader to enable us to grab minibatches!!
 
-### Intro to Pre-Trained Models
-[![button](src/visuals/play_button.png)](https://www.youtube.com/watch?v=QzJql9AOGt4) &nbsp;[Get Started with PreTrained Models!!](Leveraging%20Pre-Trained%20Models)
+- **PyTorch for NLP: RNN/LSTM**
 
-Most niche problems don't have large datasets so a typical strategy is to start with a Pre-Trained model 
-on one task and transfer that knowledge to the new task of interest. To do so we will be attempting to 
-classify images of Dogs vs Cats with a few different methods:
-- Train entire ResNet18 Model from PyTorch from scratch
-- Train only classification head of a Pre-Trained ResNet18 Model
-- Leverage the widely popular HuggingFace 🤗 repository to complete the same task
 
-### Vision Transformers from Scratch 
+- **Distributed Data/Model Parallelism**
 
-[Get Started with Vision Transformers!!](Dive%20Into%20Attention%20with%20Vision%20Transformers)
+## HuggingFace 🤗
+- **Intro to Huggingface**
+- **Training a Custom Tokenizer**
+- **Finetuning Pre-trained Language Models**
+- **Finetuning Pre-trained Image Models**
+- **Accelerate for Multi-GPU Training**
 
-Transformers have revolutionized Deep Learning and is the predominant architecture of choice for almost all
-state-of-the-art models. The most unique aspect of the model is the ability to process any type of data. Where
-previously we would typically use Convolutions for image tasks and RNN/LSTM type models for sequence tasks,
-the Transformer can process all types of data with a little work. The common architecture allows us to then experiment
-with unique MultiModal and Self-Supervised Pretraining tasks. In this repository we will be looking at the 
-Vision Transformer (which adds a few features over the traditional Transformer Architecture) but the majority 
-of the ideas hold true regardless of architectures. More specifically we will be looking at:
-- What are the benefits of Attention of Convolutions
-- What are Patch Embeddings (i.e. how to convert images to "sequence" data as the Transformer expects it)
-- Understanding the CLS Token and Positional Embeddings
-- How to build a Single Attention Head with Queries, Keys and Values
-- Expanding Single Headed Attention to MultiHeaded Attention
-- Building an Efficient Attention block that parallelize all Attention Heads at once rather in sequence
-- Understanding why Layer Normalization is preferred over Batch Normalization
+## Attention From Scratch
+- [**Dive into Attention with the Vision Transformer**](Dive%20Into%20Attention%20with%20Vision%20Transformers)
+- **Dive into Attention with the Masked AutoEncoder: Masked Image Modeling**
+- **Dive into Attention with GPT: Causal Language Modeling**
+- **Dive into Attention with BERT: Masked Language Modeling**
+
+## Encoder/Decoder From Scratch
+- **Seq2Seq for Language Translation**
+- **CNN/RNN for Image Captioning**
+- **Attention is All You Need for Language Translation**
+
+## Creative AI From Scratch
+- **Variational AutoEncoders**
+- **Vector-Quantized Variational AutoEncoder**
+- **Generative Adversarial Networks**
+- **Stable Diffusion**
+
+## Vision Tasks from Scratch
+- **UNet for Image Segmentation**
+- **YOLO for Object Detection**
+
+## Reinforcement Learning From Scratch
+- **Q-Learning**
+- **Deep-Q Learning**
+
+## Utilities
+- **RayTune for Hyperparameter Sweep**
+- **Weights and Biases for Model Logging**
+- **Deep Lake for MultiModal Data Storage**
 
 ### Materials to Come!!!
 - [x] PyTorch DataLoaders
