@@ -54,8 +54,7 @@ bash download_data.sh
 - [**Basics of Transfer Learning**](Basics%20of%20Transfer%20Learning) &nbsp; [![button](src/visuals/play_button_small.png)](https://www.youtube.com/watch?v=QzJql9AOGt4) &nbsp; [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1KYCINwxq-y8QOMCRylsxDaP9RCUHz-bV?usp=sharing)
 
 
-- **PyTorch for Vision: Convolutions**
-
+- [**PyTorch for Vision: Convolutions**](PyTorch%20for%20Computer%20Vision) &nbsp; [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1BE-y1876znMeijFu4AX4qcZdt-fs8o7a?usp=sharing)
 
 - **Going Deeper with Deep Learning: Residual Connections**
 
