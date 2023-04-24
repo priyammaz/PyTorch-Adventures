@@ -43,7 +43,7 @@ bash download_data.sh
 - [**PyTorch DataLoaders**](PyTorch%20DataLoaders) &nbsp; [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1nurV-kJmoPYlXP-qNAGGLsFXuS3lpNil?usp=sharing)
 
 
-- [**Basics of Transfer Learning**](Basics%20of%20Transfer%20Learning) &nbsp; [![button](src/visuals/play_button_small.png)](https://www.youtube.com/watch?v=QzJql9AOGt4) 
+- [**Basics of Transfer Learning**](Basics%20of%20Transfer%20Learning) &nbsp; [![button](src/visuals/play_button_small.png)](https://www.youtube.com/watch?v=QzJql9AOGt4) &nbsp; [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1KYCINwxq-y8QOMCRylsxDaP9RCUHz-bV?usp=sharing)
 
 
 - **PyTorch for Vision: Convolutions**
