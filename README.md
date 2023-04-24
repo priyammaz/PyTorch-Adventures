@@ -3,6 +3,13 @@
 ![banner](src/visuals/banner.png)
 
 ---
+![Python](https://img.shields.io/badge/python-3670A0?style=for-the-badge&logo=python&logoColor=ffdd54) &nbsp; 
+![PyTorch](https://img.shields.io/badge/PyTorch-%23EE4C2C.svg?style=for-the-badge&logo=PyTorch&logoColor=white) &nbsp; 
+[![](https://img.shields.io/badge/contributors-welcome-informational?style=for-the-badge)](https://github.com/priyammaz/HAL-DL-From-Scratch/graphs/contributors) &nbsp;
+[![Licence](https://img.shields.io/github/license/Ileriayo/markdown-badges?style=for-the-badge)](./LICENSE)
+
+### Open Source Learning and the Democratization of AI
+
 The National Center for Supercomputing Applications (NCSA) Center of AI Innovation (CAII) at the University of Illinois
 Urbana-Champaign has a focus on driving and enabling student-driven research. Their goal is to give access to the state-of-the-art
 tools and hardware so people can find novel ways to solve unanswered problems. I am one such student that has learned an incredible amount 
@@ -14,6 +21,7 @@ I will do my best to reference all that work throughout, so you can see where I 
 The purpose of this repository is to bring together that wealth of knowledge to truly be a one-stop-shop for everyone from beginners
 to researchers to gain something from and continue to push the boundaries of Open Source Research!!
 
+**If you want to contribute**, (and please do it you want!!) go ahead an submit a PR and I can review it!
 ### Getting Started
 All of these tutorials can easily be run on the [HAL](https://wiki.ncsa.illinois.edu/display/ISL20/HAL+cluster)
 system at the NCSA and you can follow the new users instructions [here](https://wiki.ncsa.illinois.edu/display/ISL20/New+User+Guide+for+HAL+System)
