@@ -56,7 +56,8 @@ bash download_data.sh
 
 - [**PyTorch for Vision: Convolutions**](PyTorch%20for%20Computer%20Vision) &nbsp; [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1BE-y1876znMeijFu4AX4qcZdt-fs8o7a?usp=sharing)
 
-- **Going Deeper with Deep Learning: Residual Connections**
+
+- [**Going Deeper with Residual Connections**](Going%20Deeper%20with%20Residuals) &nbsp; [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1OPnOApHCcZFFWkw-zfhNvfyQeswQxgea?usp=sharing)
 
 
 - **PyTorch for NLP: RNN/LSTM**
