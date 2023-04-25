@@ -8,7 +8,7 @@ until the point gradient descent is no longer able to do anything. Residuals wer
 layers were summed to later layers of computation, offering additional paths for gradients to flow
 backward! ResNet introduced a pivotal concept that is used all over modern Deep Learning today. 
 
-![resnet](../src/visuals/residual_block.png)
+![resnet](../../src/visuals/residual_block.png)
 
 #### We will be exploring a couple of things in this notebook!
 - Deep dive into backpropagation, some of its mathematical derivations and limitations
@@ -16,4 +16,4 @@ backward! ResNet introduced a pivotal concept that is used all over modern Deep 
 - Training ResNet With and Without Residuals to compare training performance
 
 
-![perf](../src/visuals/residuals_performance.png)
+![perf](../../src/visuals/residuals_performance.png)

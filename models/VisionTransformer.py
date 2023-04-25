@@ -316,7 +316,7 @@ if __name__ == "__main__":
     print(f"Total Number of Parameters: {params}")
 
     ### SETUP DATASET ###
-    PATH_TO_DATA = "../../HAL Training/data/dogsvcats"
+    PATH_TO_DATA = "../../../HAL Training/data/dogsvcats"
     dataset = ImageFolder(PATH_TO_DATA)
 
     normalizer = Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
