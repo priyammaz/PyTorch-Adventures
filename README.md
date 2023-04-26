@@ -63,7 +63,7 @@ bash download_data.sh
 - [**Digging into the LSTM: Sequence Classification**](PyTorch%20for%20NLP/IMDB%20Classification) &nbsp; [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1c98opjQt1w-HTp10U1myjSWU9acDsaV4?usp=sharing)
 
 
-- [**Lets Write a Story: Sequence Models for Text Generation**](PyTorch%20for%20NLP/Text%20Generation)
+- [**Lets Write a Story: Sequence Models for Text Generation**](PyTorch%20for%20NLP/Text%20Generation) &nbsp; [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1KO4JeIHRiKxiRJdK7gY-B9bZGfDSvCt_?usp=sharing)
 
 
 - **Distributed Data/Model Parallelism**
