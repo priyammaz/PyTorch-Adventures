@@ -77,7 +77,7 @@ bash download_data.sh
 - **Accelerate for Multi-GPU Training**
 
 ## Attention From Scratch
-- [**Dive into Attention with the Vision Transformer**](Dive%20Into%20Attention%20with%20Vision%20Transformers)
+- [**Dive into Attention with the Vision Transformer**](PyTorch%20for%20Computer%20Vision/Vision%20Transformer) &nbsp; [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1Mh-yaSWwfTs1UcOdRQjRIvLuj6PU6liZ?usp=sharing)
 - **Dive into Attention with the Masked AutoEncoder: Masked Image Modeling**
 - **Dive into Attention with GPT: Causal Language Modeling**
 - **Dive into Attention with BERT: Masked Language Modeling**
