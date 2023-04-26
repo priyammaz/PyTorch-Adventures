@@ -1,4 +1,5 @@
-# HAL Training: Vision Transformers
+## Vision Transformers for Image Recognition 
+
 This repository contains all the code presented for the Vision Transformer Tutorial for the National Center for Supercomputing Applications HAL Tutorials. In this exploration our goal is to build a Vision Transformer from scratch!
 
 Concepts covered:
