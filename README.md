@@ -66,7 +66,8 @@ bash download_data.sh
 - [**Lets Write a Story: Sequence Models for Text Generation**](PyTorch%20for%20NLP/Text%20Generation) &nbsp; [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1KO4JeIHRiKxiRJdK7gY-B9bZGfDSvCt_?usp=sharing)
 
 
-- **Distributed Data/Model Parallelism**
+- [**Large Model Considerations: Distributed Training**](Distributed%20Training) &nbsp; [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1cyxgaWonj-FrfEbZvTwAVepkZhaF_sda?usp=sharing)
+
 
 ## HuggingFace 🤗
 - **Intro to Huggingface**
