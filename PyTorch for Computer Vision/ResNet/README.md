@@ -1,4 +1,4 @@
-### Going Deeper with Residual Connections &nbsp; [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1OPnOApHCcZFFWkw-zfhNvfyQeswQxgea?usp=sharing)
+## Going Deeper with Residual Connections &nbsp; [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1OPnOApHCcZFFWkw-zfhNvfyQeswQxgea?usp=sharing)
 
 
 The "Deepness" of a neural network is determined by how many computational layers we include
