@@ -1,4 +1,4 @@
-### PyTorch for Vision: Convolutions &nbsp; [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1BE-y1876znMeijFu4AX4qcZdt-fs8o7a?usp=sharing)
+## Intro to PyTorch for Vision: Digging into Convolutions &nbsp; [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1BE-y1876znMeijFu4AX4qcZdt-fs8o7a?usp=sharing)
 The convolution mechanic was a huge step forward in Deep Learning for Computer Vision and still remains
 one of the dominant methods for image processing today! In this lesson we will be exploring the typical
 Convolutional Neural network structure and how to implement [AlexNet](https://proceedings.neurips.cc/paper_files/paper/2012/file/c399862d3b9d6b76c8436e924a68c45b-Paper.pdf), one of the earliest examples that won

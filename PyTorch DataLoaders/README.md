@@ -1,4 +1,4 @@
-# PyTorch Datasets and DataLoaders
+## PyTorch Datasets and DataLoaders &nbsp; [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1nurV-kJmoPYlXP-qNAGGLsFXuS3lpNil?usp=sharing)
 
 There is no way to train a model without first knowing how to work with different data types and load them in an 
 efficient manner. For this we will explore the incredible PyTorch Dataset and DataLoader that handles most of the heavy lifting for you!!
@@ -45,5 +45,5 @@ for images, labels in dataloader:
     print(labels)
     break
 ```
-We will be breaking all of this down in detail to best understand how to manipilate and pass data
+We will be breaking all of this down in detail to best understand how to manipulate and pass data
 as efficiently as possible to our model!
