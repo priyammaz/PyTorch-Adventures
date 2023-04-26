@@ -45,5 +45,5 @@ for images, labels in dataloader:
     print(labels)
     break
 ```
-We will be breakign all of this down in detail to best understand how to manipilate and pass data
+We will be breaking all of this down in detail to best understand how to manipilate and pass data
 as efficiently as possible to our model!
