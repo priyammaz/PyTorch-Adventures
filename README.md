@@ -45,13 +45,13 @@ bash download_data.sh
 ```
 
 ## Foundations
-- [**Intro to PyTorch: Exploring the Mechanics**](Intro%20to%20PyTorch) &nbsp;[![button](src/visuals/play_button_small.png)](https://www.youtube.com/watch?v=QzJql9AOGt4)  &nbsp; [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1YQanR0ME7ThsU9YwLzXhGvYGOdH2ErSa?usp=sharing)
+- [**Intro to PyTorch: Exploring the Mechanics**](Intro%20to%20PyTorch) &nbsp; [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1YQanR0ME7ThsU9YwLzXhGvYGOdH2ErSa?usp=sharing)
 
 
 - [**PyTorch Datasets and DataLoaders**](PyTorch%20DataLoaders) &nbsp; [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1nurV-kJmoPYlXP-qNAGGLsFXuS3lpNil?usp=sharing)
 
 
-- [**Leveraging Pre-Trained Models for Transfer Learning**](Basics%20of%20Transfer%20Learning) &nbsp; [![button](src/visuals/play_button_small.png)](https://www.youtube.com/watch?v=QzJql9AOGt4) &nbsp; [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1KYCINwxq-y8QOMCRylsxDaP9RCUHz-bV?usp=sharing)
+- [**Leveraging Pre-Trained Models for Transfer Learning**](Basics%20of%20Transfer%20Learning) &nbsp; [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1KYCINwxq-y8QOMCRylsxDaP9RCUHz-bV?usp=sharing)
 
 
 - [**Intro to PyTorch for Vision: Digging into Convolutions**](PyTorch%20for%20Computer%20Vision/Intro%20to%20Vision) &nbsp; [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1BE-y1876znMeijFu4AX4qcZdt-fs8o7a?usp=sharing)
