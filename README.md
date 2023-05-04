@@ -45,7 +45,7 @@ bash download_data.sh
 ```
 
 ## Foundations
-- [**Intro to PyTorch: Exploring the Mechanics**](Intro%20to%20PyTorch) &nbsp; [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1YQanR0ME7ThsU9YwLzXhGvYGOdH2ErSa?usp=sharing)
+- [**Intro to PyTorch: Exploring the Mechanics**](Intro%20to%20PyTorch) &nbsp; [![button](../src/visuals/play_button_small.png)](https://www.youtube.com/watch?v=zQ-OQXBJcyw)  &nbsp; [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1YQanR0ME7ThsU9YwLzXhGvYGOdH2ErSa?usp=sharing)
 
 
 - [**PyTorch Datasets and DataLoaders**](PyTorch%20DataLoaders) &nbsp; [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1nurV-kJmoPYlXP-qNAGGLsFXuS3lpNil?usp=sharing)
