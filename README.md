@@ -48,7 +48,7 @@ bash download_data.sh
 - [**Intro to PyTorch: Exploring the Mechanics**](Intro%20to%20PyTorch) &nbsp; [![button](src/visuals/play_button_small.png)](https://www.youtube.com/watch?v=zQ-OQXBJcyw)  &nbsp; [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1YQanR0ME7ThsU9YwLzXhGvYGOdH2ErSa?usp=sharing)
 
 
-- [**PyTorch Datasets and DataLoaders**](PyTorch%20DataLoaders) &nbsp; [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1nurV-kJmoPYlXP-qNAGGLsFXuS3lpNil?usp=sharing)
+- [**PyTorch Datasets and DataLoaders**](PyTorch%20DataLoaders) &nbsp; [![button](src/visuals/play_button_small.png)](https://www.youtube.com/watch?v=IkjmZI817ko)  &nbsp; [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1nurV-kJmoPYlXP-qNAGGLsFXuS3lpNil?usp=sharing)
 
 
 - [**Leveraging Pre-Trained Models for Transfer Learning**](Basics%20of%20Transfer%20Learning) &nbsp; [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1KYCINwxq-y8QOMCRylsxDaP9RCUHz-bV?usp=sharing)
