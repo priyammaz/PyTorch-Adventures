@@ -72,22 +72,36 @@ There are a few other datasets that we will use but are inconsistent to automati
 
 - [**Large Model Considerations: Distributed Training**](Distributed%20Training) &nbsp; [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1cyxgaWonj-FrfEbZvTwAVepkZhaF_sda?usp=sharing)
 
-
-## HuggingFace 🤗
-- **Intro to Huggingface**
-- **Training a Custom Tokenizer**
-- **Finetuning Pre-trained Language Models**
-- **Finetuning Pre-trained Image Models**
-- **Accelerate for Multi-GPU Training**
+- **Distributed Training with Huggingface 🤗 Accelerate**
 
 ## PyTorch for Computer Vision ##
-
+- **UNet for Image Segmentation**
+- [**Moving from Convolutions: Vision Transformer**](PyTorch%20for%20Computer%20Vision/Vision%20Transformer) &nbsp; [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1Mh-yaSWwfTs1UcOdRQjRIvLuj6PU6liZ?usp=sharing)
+- **Masked Image Modeling with Masked Autoencoders**
+- **Self-Supervised Learning with DINO**
+- **Hierarchical Vision Transformers with Swin Transformer**
+  
 ## PyTorch for Natural Language ##
-## Attention From Scratch
-- [**Dive into Attention with the Vision Transformer**](PyTorch%20for%20Computer%20Vision/Vision%20Transformer) &nbsp; [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1Mh-yaSWwfTs1UcOdRQjRIvLuj6PU6liZ?usp=sharing)
-- **Dive into Attention with the Masked AutoEncoder: Masked Image Modeling**
-- **Dive into Attention with GPT: Causal Language Modeling**
-- **Dive into Attention with BERT: Masked Language Modeling**
+- **Causal Language Modeling: GPT**
+- **Masked Language Modeling: RoBERTa**
+- **MLP to Mixture of Experts**
+
+## PyTorch for Speech Processing ##
+- **Intro to Audio Processing in PyTorch**
+- **Connectionist Temporal Classification loss**
+- **Intro to Automatic Speech Recognition**
+- **ASR through Self-Supervised Learning: Wav2Vec2**
+- **RNN Transducer as an Alternative to CTC**
+  
+## Exploring Multimodality ##
+- **Building Vision/Language Representations: CLIP**
+- **Automatic Image Captioning**
+- **Visual Question Answering**
+
+## Dive into Attention ##
+- **Barebones Attention Mechanism**
+- **Sparse Windowed Attention**
+- **Linear Attention**
 
 ## Sequence to Sequence Modeling ##
 - **Seq2Seq for Language Translation**
