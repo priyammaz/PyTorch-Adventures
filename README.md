@@ -100,8 +100,3 @@ bash download_data.sh
 ## Reinforcement Learning From Scratch
 - **Q-Learning**
 - **Deep-Q Learning**
-
-## Utilities
-- **RayTune for Hyperparameter Sweep**
-- **Weights and Biases for Model Logging**
-- **Deep Lake for MultiModal Data Storage**
