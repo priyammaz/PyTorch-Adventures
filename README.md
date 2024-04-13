@@ -43,6 +43,10 @@ Ensure you have a */data* folder in your root directory of the git repo and run 
 ```
 bash download_data.sh 
 ```
+#### Extra Datasets ####
+There are a few other datasets that we will use but are inconsistent to automatically download and are used in the more advanced architectures! Just download them from the link and save them in the */data* folder!
+- [CelebA](https://www.kaggle.com/datasets/jessicali9530/celeba-dataset)
+
 
 ## Foundations
 - [**Intro to PyTorch: Exploring the Mechanics**](Intro%20to%20PyTorch) &nbsp; [![button](src/visuals/play_button_small.png)](https://www.youtube.com/watch?v=zQ-OQXBJcyw)  &nbsp; [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1YQanR0ME7ThsU9YwLzXhGvYGOdH2ErSa?usp=sharing)
@@ -76,26 +80,34 @@ bash download_data.sh
 - **Finetuning Pre-trained Image Models**
 - **Accelerate for Multi-GPU Training**
 
+## PyTorch for Computer Vision ##
+
+## PyTorch for Natural Language ##
 ## Attention From Scratch
 - [**Dive into Attention with the Vision Transformer**](PyTorch%20for%20Computer%20Vision/Vision%20Transformer) &nbsp; [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1Mh-yaSWwfTs1UcOdRQjRIvLuj6PU6liZ?usp=sharing)
 - **Dive into Attention with the Masked AutoEncoder: Masked Image Modeling**
 - **Dive into Attention with GPT: Causal Language Modeling**
 - **Dive into Attention with BERT: Masked Language Modeling**
 
-## Encoder/Decoder From Scratch
+## Sequence to Sequence Modeling ##
 - **Seq2Seq for Language Translation**
 - **CNN/RNN for Image Captioning**
 - **Attention is All You Need for Language Translation**
 
-## Creative AI From Scratch
+## AutoEncoders ##
+- **Intro to AutoEncoders**
 - **Variational AutoEncoders**
-- **Vector-Quantized Variational AutoEncoder**
-- **Generative Adversarial Networks**
-- **Stable Diffusion**
+- **Vector-Quantized Variational Autoencoders**
 
-## Vision Tasks from Scratch
-- **UNet for Image Segmentation**
-- **YOLO for Object Detection**
+## Generative Adversarial Networks ##
+- **Intro to Generative Adversarial Networks**
+- **SuperResolution with SRGAN**
+- **Image2Image Translation with CycleGAN**
+
+## Diffusion ##
+- **Intro to Diffusion**
+- **Text-Conditional Diffusion**
+- **Latent-Space Diffusion**
 
 ## Reinforcement Learning From Scratch
 - **Q-Learning**
