@@ -44,33 +44,33 @@ Ensure you have a */data* folder in your root directory of the git repo and run 
 bash download_data.sh 
 ```
 #### Extra Datasets ####
-There are a few other datasets that we will use but are inconsistent to automatically download and are used in the more advanced architectures! Just download them from the link and save them in the */data* folder!
+There are a few other datasets that we will use but are inconsistent to automatically download and are used in the more advanced architectures! Just download them from the link and save them in the */data* folder! These datasets may also be too large to train in Google Drive so keep that in mind!
 - [CelebA](https://www.kaggle.com/datasets/jessicali9530/celeba-dataset)
-
+- [MS-COCO](https://cocodataset.org/#download)
 
 ## Foundations
-- [**Intro to PyTorch: Exploring the Mechanics**](Intro%20to%20PyTorch) &nbsp; [![button](src/visuals/play_button_small.png)](https://www.youtube.com/watch?v=zQ-OQXBJcyw)  &nbsp; [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1YQanR0ME7ThsU9YwLzXhGvYGOdH2ErSa?usp=sharing)
+- [**Intro to PyTorch: Exploring the Mechanics**](PyTorch%20Basics/Intro%20to%20PyTorch/) &nbsp; [![button](src/visuals/play_button_small.png)](https://www.youtube.com/watch?v=zQ-OQXBJcyw)  &nbsp; [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1YQanR0ME7ThsU9YwLzXhGvYGOdH2ErSa?usp=sharing)
 
 
-- [**PyTorch Datasets and DataLoaders**](PyTorch%20DataLoaders) &nbsp; [![button](src/visuals/play_button_small.png)](https://www.youtube.com/watch?v=IkjmZI817ko)  &nbsp; [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1nurV-kJmoPYlXP-qNAGGLsFXuS3lpNil?usp=sharing)
+- [**PyTorch Datasets and DataLoaders**](PyTorch%20Basics/PyTorch%20DataLoaders/) &nbsp; [![button](src/visuals/play_button_small.png)](https://www.youtube.com/watch?v=IkjmZI817ko)  &nbsp; [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1nurV-kJmoPYlXP-qNAGGLsFXuS3lpNil?usp=sharing)
 
 
-- [**Leveraging Pre-Trained Models for Transfer Learning**](Basics%20of%20Transfer%20Learning)  &nbsp; [![button](src/visuals/play_button_small.png)](https://www.youtube.com/watch?v=QvPCiHr6eLU)  &nbsp; [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1KYCINwxq-y8QOMCRylsxDaP9RCUHz-bV?usp=sharing)
+- [**Leveraging Pre-Trained Models for Transfer Learning**](PyTorch%20Basics/Basics%20of%20Transfer%20Learning/)  &nbsp; [![button](src/visuals/play_button_small.png)](https://www.youtube.com/watch?v=QvPCiHr6eLU)  &nbsp; [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1KYCINwxq-y8QOMCRylsxDaP9RCUHz-bV?usp=sharing)
 
 
-- [**Intro to PyTorch for Vision: Digging into Convolutions**](PyTorch%20for%20Computer%20Vision/Intro%20to%20Vision) &nbsp; [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1BE-y1876znMeijFu4AX4qcZdt-fs8o7a?usp=sharing)
+- [**Intro to PyTorch for Vision: Digging into Convolutions**](PyTorch%20for%20Computer%20Vision/Intro%20to%20Vision/) &nbsp; [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1BE-y1876znMeijFu4AX4qcZdt-fs8o7a?usp=sharing)
 
 
-- [**Going Deeper with Residual Connections**](PyTorch%20for%20Computer%20Vision/ResNet) &nbsp; [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1OPnOApHCcZFFWkw-zfhNvfyQeswQxgea?usp=sharing)
+- [**Going Deeper with Residual Connections**](PyTorch%20for%20Computer%20Vision/ResNet/) &nbsp; [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1OPnOApHCcZFFWkw-zfhNvfyQeswQxgea?usp=sharing)
 
 
-- [**Digging into the LSTM: Sequence Classification**](PyTorch%20for%20NLP/IMDB%20Classification) &nbsp; [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1c98opjQt1w-HTp10U1myjSWU9acDsaV4?usp=sharing)
+- [**Digging into the LSTM: Sequence Classification**](PyTorch%20for%20NLP/LSTM/LSTM%20IMDB%20Classification/) &nbsp; [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1c98opjQt1w-HTp10U1myjSWU9acDsaV4?usp=sharing)
 
 
-- [**Lets Write a Story: Sequence Models for Text Generation**](PyTorch%20for%20NLP/Text%20Generation) &nbsp; [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1KO4JeIHRiKxiRJdK7gY-B9bZGfDSvCt_?usp=sharing)
+- [**Lets Write a Story: Sequence Models for Text Generation**](PyTorch%20for%20NLP/LSTM/LSTM%20Harry%20Potter%20Generation/) &nbsp; [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1KO4JeIHRiKxiRJdK7gY-B9bZGfDSvCt_?usp=sharing)
 
 
-- [**Large Model Considerations: Distributed Training**](Distributed%20Training) &nbsp; [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1cyxgaWonj-FrfEbZvTwAVepkZhaF_sda?usp=sharing)
+- [**Large Model Considerations: Distributed Training**](PyTorch%20Basics/Distributed%20Training/) &nbsp; [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1cyxgaWonj-FrfEbZvTwAVepkZhaF_sda?usp=sharing)
 
 - **Distributed Training with Huggingface 🤗 Accelerate**
 
@@ -105,7 +105,7 @@ There are a few other datasets that we will use but are inconsistent to automati
   - **Image2Image Translation with CycleGAN**
 
 - ### Diffusion ##
-  - **Intro to Diffusion**
+  - [**Intro to Diffusion**](PyTorch%20for%20Computer%20Vision/Vision%20Transformer) &nbsp; [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://drive.google.com/file/d/1I8IDHNMURVHgd9hlBEi7cfprGNEbp16J/view?usp=sharing)
   - **Text-Conditional Diffusion with Classifier Free Guidance**
   - **Latent-Space Diffusion**
 
