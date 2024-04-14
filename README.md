@@ -74,26 +74,42 @@ There are a few other datasets that we will use but are inconsistent to automati
 
 - **Distributed Training with Huggingface 🤗 Accelerate**
 
-## PyTorch for Computer Vision ##
+## Computer Vision ##
 - **UNet for Image Segmentation**
 - [**Moving from Convolutions: Vision Transformer**](PyTorch%20for%20Computer%20Vision/Vision%20Transformer) &nbsp; [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1Mh-yaSWwfTs1UcOdRQjRIvLuj6PU6liZ?usp=sharing)
 - **Masked Image Modeling with Masked Autoencoders**
 - **Self-Supervised Learning with DINO**
 - **Hierarchical Vision Transformers with Swin Transformer**
   
-## PyTorch for Natural Language ##
+## Natural Language Processing ##
 - **Causal Language Modeling: GPT**
 - **Masked Language Modeling: RoBERTa**
 - **MLP to Mixture of Experts**
 
-## PyTorch for Speech Processing ##
+## Speech Processing ##
 - **Intro to Audio Processing in PyTorch**
-- **Connectionist Temporal Classification loss**
+- **Connectionist Temporal Classification Loss**
 - **Intro to Automatic Speech Recognition**
 - **ASR through Self-Supervised Learning: Wav2Vec2**
 - **RNN Transducer as an Alternative to CTC**
-  
-## Exploring Multimodality ##
+
+## Generative AI
+- ### AutoEncoders ##
+  - **Intro to AutoEncoders**
+  - **Variational AutoEncoders**
+  - **Vector-Quantized Variational Autoencoders**
+
+- ### Generative Adversarial Networks ##
+  - **Intro to Generative Adversarial Networks**
+  - **SuperResolution with SRGAN**
+  - **Image2Image Translation with CycleGAN**
+
+- ### Diffusion ##
+  - **Intro to Diffusion**
+  - **Text-Conditional Diffusion with Classifier Free Guidance**
+  - **Latent-Space Diffusion**
+
+## MultiModal AI ##
 - **Building Vision/Language Representations: CLIP**
 - **Automatic Image Captioning**
 - **Visual Question Answering**
@@ -108,21 +124,6 @@ There are a few other datasets that we will use but are inconsistent to automati
 - **CNN/RNN for Image Captioning**
 - **Attention is All You Need for Language Translation**
 
-## AutoEncoders ##
-- **Intro to AutoEncoders**
-- **Variational AutoEncoders**
-- **Vector-Quantized Variational Autoencoders**
-
-## Generative Adversarial Networks ##
-- **Intro to Generative Adversarial Networks**
-- **SuperResolution with SRGAN**
-- **Image2Image Translation with CycleGAN**
-
-## Diffusion ##
-- **Intro to Diffusion**
-- **Text-Conditional Diffusion**
-- **Latent-Space Diffusion**
-
-## Reinforcement Learning From Scratch
+## Reinforcement Learning
 - **Q-Learning**
 - **Deep-Q Learning**
