@@ -1,4 +1,4 @@
-## Leveraging Pre-Trained Models for Transfer Learning &nbsp; [![button](../src/visuals/play_button.png)](https://www.youtube.com/watch?v=QzJql9AOGt4) &nbsp; [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1KYCINwxq-y8QOMCRylsxDaP9RCUHz-bV?usp=sharing)
+## Leveraging Pre-Trained Models for Transfer Learning &nbsp; [![button](../../src/visuals/play_button.png)](https://www.youtube.com/watch?v=QzJql9AOGt4) &nbsp; [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1KYCINwxq-y8QOMCRylsxDaP9RCUHz-bV?usp=sharing)
 
 Most niche problems don't have large datasets so a typical strategy is to start with a Pre-Trained model 
 on one task and transfer that knowledge to the new task of interest. To do so we will be attempting to 

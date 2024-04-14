@@ -1,4 +1,4 @@
-## PyTorch Datasets and DataLoaders &nbsp; [![button](../src/visuals/play_button.png)](https://www.youtube.com/watch?v=IkjmZI817ko)  &nbsp; [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1nurV-kJmoPYlXP-qNAGGLsFXuS3lpNil?usp=sharing)
+## PyTorch Datasets and DataLoaders &nbsp; [![button](../../src/visuals/play_button.png)](https://www.youtube.com/watch?v=IkjmZI817ko)  &nbsp; [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1nurV-kJmoPYlXP-qNAGGLsFXuS3lpNil?usp=sharing)
 
 There is no way to train a model without first knowing how to work with different data types and load them in an 
 efficient manner. For this we will explore the incredible PyTorch Dataset and DataLoader that handles most of the heavy lifting for you!!
