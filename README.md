@@ -105,7 +105,7 @@ There are a few other datasets that we will use but are inconsistent to automati
   - **Image2Image Translation with CycleGAN**
 
 - ### Diffusion ##
-  - [**Intro to Diffusion**](PyTorch%20for%20Generation/Diffusion/Intro%20to%20Diffusion/) &nbsp; [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://drive.google.com/file/d/1I8IDHNMURVHgd9hlBEi7cfprGNEbp16J/view?usp=sharing)
+  - [**Intro to Diffusion**](PyTorch%20for%20Generation/Diffusion/Intro%20to%20Diffusion/) &nbsp; [![Open In Colab](https://colab.research.google.com/drive/1KBupTiAId1LO67IcM-yn3xkK81aj06sG?usp=sharing)
   - **Text-Conditional Diffusion with Classifier Free Guidance**
   - **Latent-Space Diffusion**
 
