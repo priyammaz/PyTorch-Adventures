@@ -1,7 +1,10 @@
+<<<<<<< HEAD
 # Ignore PyTorch Model Weights 
 *.bin 
 /work_dir
 
+=======
+>>>>>>> c31add08e10bcf7939b45e8bd60e42ac7698e33f
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
