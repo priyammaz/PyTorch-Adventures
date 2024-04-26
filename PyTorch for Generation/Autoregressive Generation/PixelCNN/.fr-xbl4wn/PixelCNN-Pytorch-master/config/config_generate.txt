@@ -1,0 +1,8 @@
+[model]
+path = Data
+load_path = Models/Model_Checkpoint_Last.pt
+
+
+[images]
+no_images = 144
+images_size = 28

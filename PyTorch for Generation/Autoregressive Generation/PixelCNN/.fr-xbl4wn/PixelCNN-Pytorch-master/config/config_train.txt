@@ -1,0 +1,7 @@
+[data]
+path = Data
+
+[network]
+no_layers = 8
+kernel = 7
+channels = 64
