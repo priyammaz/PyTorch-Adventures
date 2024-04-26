@@ -1,5 +1,6 @@
 # Ignore PyTorch Model Weights 
 *.bin 
+/work_dir
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
