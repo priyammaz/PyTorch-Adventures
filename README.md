@@ -95,9 +95,10 @@ There are a few other datasets that we will use but are inconsistent to automati
 
 ## Generative AI
 - ### AutoEncoders ##
-  - **Intro to AutoEncoders**
-  - **Variational AutoEncoders**
-  - **Vector-Quantized Variational Autoencoders**
+  - [**Intro to AutoEncoders**](PyTorch%20for%20Generation/AutoEncoders/Intro%20to%20AutoEncoders/Intro_To_AutoEncoders.ipynb)
+  - [**Variational AutoEncoders**](PyTorch%20for%20Generation/AutoEncoders/Intro%20to%20AutoEncoders/Variational_AutoEncoders.ipynb)
+  - [**Vector-Quantized Variational Autoencoders**](PyTorch%20for%20Generation/AutoEncoders/Intro%20to%20AutoEncoders/Vector_Quantized_Variational_AutoEncoders.ipynb)
+  - [**Scaling Up AutoEncoders**](PyTorch%20for%20Generation/AutoEncoders/Scaling%20up%20AutoEncoders/)
 
 - ### Generative Adversarial Networks ##
   - **Intro to Generative Adversarial Networks**
@@ -105,7 +106,7 @@ There are a few other datasets that we will use but are inconsistent to automati
   - **Image2Image Translation with CycleGAN**
 
 - ### Diffusion ##
-  - [**Intro to Diffusion**](PyTorch%20for%20Generation/Diffusion/Intro%20to%20Diffusion/) &nbsp; [![Open In Colab](https://colab.research.google.com/drive/1KBupTiAId1LO67IcM-yn3xkK81aj06sG?usp=sharing)
+  - [**Intro to Diffusion**](PyTorch%20for%20Generation/Diffusion/Intro%20to%20Diffusion/) &nbsp; [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1KBupTiAId1LO67IcM-yn3xkK81aj06sG?usp=sharing)
   - **Text-Conditional Diffusion with Classifier Free Guidance**
   - **Latent-Space Diffusion**
 
