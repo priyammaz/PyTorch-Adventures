@@ -14,16 +14,22 @@ from PIL import Image
 from torch.utils.data import Dataset, DataLoader
 import matplotlib.pyplot as plt
 from transformers import get_cosine_schedule_with_warmup, AutoTokenizer, CLIPTextModel
+from accelerate import Accelerator
 import itertools
 
+##################################################
+############### STUFF WE NEED ####################
+##################################################
+
+tokenizer = AutoTokenizer.from_pretrained("openai/clip-vit-base-patch32")
 
 ###################################################
 ################ DEFINE SAMPLER ###################
 ###################################################
 
 class Sampler:
-    def __init__(self, num_training_steps=1000, beta_start=0.0001, beta_end=0.02):
-        self.num_training_steps = num_training_steps
+    def __init__(self, num_timesteps=1000, beta_start=0.0001, beta_end=0.02):
+        self.num_timesteps = num_timesteps
         self.beta_start = beta_start
         self.beta_end = beta_end
 
@@ -35,7 +41,7 @@ class Sampler:
         self.alpha_cumulative_prod = torch.cumprod(self.alpha, dim=-1)
     
     def linear_beta_schedule(self):
-        return torch.linspace(self.beta_start, self.beta_end, self.num_training_steps)
+        return torch.linspace(self.beta_start, self.beta_end, self.num_timesteps)
 
     def _repeated_unsqueeze(self, target_shape, input):
         while target_shape.dim() > input.dim():
@@ -570,6 +576,18 @@ class UNET(nn.Module):
         
         return x
 
+#############################################################
+############ Categorical Embeddings  ########################
+#############################################################
+
+class CateogricalEmbeddings(nn.Module):
+    
+    def __init__(self, num_classes=10, embed_dim=256):
+        self.class_embeddings = nn.Embedding(num_classes, embed_dim)
+
+    def forward(self, x):
+        return self.class_embeddings(x)
+        
 class Diffusion(nn.Module):
     def __init__(self, 
                  in_channels=3, 
@@ -579,7 +597,9 @@ class Diffusion(nn.Module):
                  residual_blocks_per_group=1, 
                  groupnorm_num_groups=16, 
                  time_embed_dim=128, 
-                 time_embed_dim_ratio=2):
+                 time_embed_dim_ratio=2,
+                 clip_embeddings=True, 
+                 num_classes=0):
 
         super().__init__()
         self.in_channels = in_channels
@@ -587,13 +607,24 @@ class Diffusion(nn.Module):
         self.dim_mults = dim_mults
         self.residual_blocks_per_group = residual_blocks_per_group
         self.groupnorm_num_groups = groupnorm_num_groups
+        self.context_embed_dim = context_embed_dim
+        self.clip_embeddings = clip_embeddings
+        self.num_classes = num_classes
 
         self.time_embed_dim = time_embed_dim
         self.scaled_time_embed_dim = int(time_embed_dim * time_embed_dim_ratio)
 
-        ### Text Encoding CLIP Model ###
-        self.text_encoder = CLIPTextModel.from_pretrained("openai/clip-vit-base-patch32")
-        self.text_encoder.eval()
+        if clip_embeddings:
+            ### Text Encoding CLIP Model ###
+            self.text_encoder = CLIPTextModel.from_pretrained("openai/clip-vit-base-patch32")
+            self.text_encoder.eval()
+
+            ### Turn of All Gradients ###
+            for model, param in self.text_encoder.named_parameters():
+                param.requires_grad_(False)
+    
+        if num_classes > 0:
+            self.class_embed = CateogricalEmbeddings()
 
         ### Diffusion Model Parts ###
         self.sinusoid_time_embeddings = SinusoidalTimeEmbedding(time_embed_dim=self.time_embed_dim,
@@ -611,10 +642,20 @@ class Diffusion(nn.Module):
         encoded_text = self.text_encoder(context).last_hidden_state
         return encoded_text
         
-    def forward(self, noisy_inputs, timesteps, context, mask=None):
+    def forward(self, noisy_inputs, timesteps, context=None, mask=None, cfg_weight=0):
+
+        batch_size = noisy_inputs.shape[0]
 
         ### Encode Text ###
-        encoded_text = self.encode_text(context)
+        if context is not None:
+            encoded_text = self.encode_text(context)
+
+            ### 0 Out Embeddings Randomly for CFG ###
+            if cfg_weight > 0:
+                encoded_text[torch.where(torch.randn(batch_size) < cfg_weight)] = 0
+        else:
+            # If No Context is Passed, we are doing Unconditional Generation (0 Embeddings) #
+            encoded_text = torch.zeros((batch_size, 1, self.context_embed_dim), device=noisy_inputs.device)
         
         ### Embed the Timesteps ###
         timestep_embeddings = self.sinusoid_time_embeddings(timesteps)
@@ -735,20 +776,248 @@ def collate_fn(examples):
     return batch
 
 
-d = COCODataset("../../../data/coco2017", train=True)
-tokenizer = AutoTokenizer.from_pretrained("openai/clip-vit-base-patch32")
-loader = DataLoader(d, batch_size=32, collate_fn=collate_fn, num_workers=16, pin_memory=True)
+########################################################
+############## Sample Generations ######################
+########################################################
 
-for d in tqdm(loader):
-    break
+@torch.no_grad()
+def sample_plot_images(step_idx, 
+                       total_timesteps, 
+                       sampler, 
+                       image_size, 
+                       num_channels, 
+                       plot_freq, 
+                       model, 
+                       conditional, 
+                       path_to_save, 
+                       device):
 
-model = Diffusion().to("cuda")
+    prompts = ['A boy playing with a kite in the park.', 
+               'A dog running on a beach.', 
+               'An airplane flying through a cloudy blue sky.']
 
-images, context, mask = d["images"].to("cuda"), d["context"].to("cuda"), d["mask"].to("cuda")
-timesteps = torch.randint(0,1000, (32,)).to("cuda")
+    num_gens = len(prompts)
+    
+    if not conditional:
+        prompts = None
+        mask = None
+        
+    else:
+        tokenized = tokenizer(prompts, padding=True, return_tensors="pt")
+        prompts = tokenized["input_ids"].to(device)
+        mask = tokenized["attention_mask"].to(device)
+        mask = ~mask.bool()
+        
+    tensor2image_transform = transforms.Compose([
+        transforms.Lambda(lambda t: t.squeeze(0)),
+        transforms.Lambda(lambda t: (t + 1) / 2),
+        transforms.Lambda(lambda t: t.permute(1, 2, 0)),
+        transforms.Lambda(lambda t: t * 255.),
+        transforms.Lambda(lambda t: torch.clamp(t, min=0, max=255)),
+        transforms.Lambda(lambda t: t.cpu().numpy().astype(np.uint8)),
+        transforms.ToPILImage(),
+    ])
 
-out = model(images, timesteps, context, mask=mask)
-print(out.shape)
+    images = torch.randn((num_gens, num_channels, image_size, image_size))
+    num_images_per_gen = (total_timesteps // plot_freq)
+
+    images_to_vis = [[] for _ in range(num_gens)]
+
+    for t in np.arange(total_timesteps)[::-1]:
+        ts = torch.full((num_gens, ), t)
+        noise_pred = model(images.to(device), 
+                           ts.to(device),
+                           context=prompts,
+                           mask=mask).detach().cpu()
+        
+        images = sampler.remove_noise(images, ts, noise_pred)
+
+        if t % plot_freq == 0:
+            for idx, image in enumerate(images):
+                images_to_vis[idx].append(tensor2image_transform(image))
+
+    images_to_vis = list(itertools.chain(*images_to_vis))
+
+    fig, axes = plt.subplots(nrows=num_gens, ncols=num_images_per_gen, figsize=(num_images_per_gen, num_gens))
+    plt.tight_layout()
+    for ax, image in zip(axes.ravel(), images_to_vis):
+        ax.imshow(image)
+        ax.axis("off")
+    fig.subplots_adjust(wspace=0.05, hspace=0.05)
+    plt.savefig(os.path.join(path_to_save, f"{step_idx}.png"), dpi=300)
+    plt.close()
+
+
+########################################################
+############## TRAINING SCRIPT #########################
+########################################################
+
+img_size = 128
+batch_size = 32
+gradient_accumulation_steps = 1
+total_timesteps = 1000
+plot_freq = 100
+learning_rate = 0.0005
+num_training_steps = 150000
+evaluation_interval = 500
+print_to_console_interval = 50
+classifier_free_guidance_weight = 0.1
+num_input_channels = 3
+path_to_generation = "generated"
+path_to_checkpoint = "checkpoint"
+
+torch.backends.cudnn.benchmark = True
+
+### Instantiate MultiGPU ###
+accelerator = Accelerator()
+
+### Prep  Dataset ###
+dataset = COCODataset("../../../data/coco2017", train=True, img_size=img_size)
+trainloader = DataLoader(dataset, batch_size=batch_size // gradient_accumulation_steps, shuffle=True, 
+                         num_workers=16, pin_memory=True, collate_fn=collate_fn)
+
+### Prep Model ###
+model = Diffusion(in_channels=3, 
+                  context_embed_dim=512, # Embed dim for CLIP Text Encoder
+                  start_dim=128, 
+                  dim_mults=(1,2,4), 
+                  residual_blocks_per_group=2, 
+                  groupnorm_num_groups=16, 
+                  time_embed_dim=128, 
+                  time_embed_dim_ratio=2)
+
+
+model_parameters = filter(lambda p: p.requires_grad, model.parameters())
+params = sum([np.prod(p.size()) for p in model_parameters])
+if accelerator.is_local_main_process:
+    print("Number of Parameters:", params)
+
+
+### Grab Optimizer and LR Scheduler ###
+optimizer = torch.optim.AdamW(params=model.parameters(), lr=learning_rate)
+scheduler = get_cosine_schedule_with_warmup(optimizer=optimizer, 
+                                            num_warmup_steps=2500, 
+                                            num_training_steps=num_training_steps)
+
+
+### Prepare Everything ###
+model, optimizer, trainloader, scheduler = accelerator.prepare(model, optimizer, trainloader, scheduler)
+
+### Define Sampler ###
+ddpm_sampler = Sampler(num_timesteps=total_timesteps)
+
+### Define Loss Function ###
+loss_fn = nn.HuberLoss()
+
+### Training Loop ###
+progress_bar = tqdm(range(num_training_steps), disable=not accelerator.is_local_main_process)
+completed_steps = 0
+best_loss = torch.inf
+grad_iters = 0
+eval_flag = False
+
+train = True
+
+while train:
+    
+    training_losses = []
+
+    for batch in trainloader:
+
+        images, context, mask = batch["images"], batch["context"], batch["mask"]
+
+        batch_size = images.shape[0]
+
+        ### Random Sample Timesteps ###
+        timesteps = torch.randint(0, total_timesteps, (batch_size, ))
+
+        ### Get Noisy Images ###
+        noisy_images, noise = ddpm_sampler.add_noise(images, timesteps)
+
+        with accelerator.accumulate(model):
+            
+            ### Predict Noise with Diffusion Model ###
+            noise_pred = model(noisy_images, timesteps, context, mask, cfg_weight=classifier_free_guidance_weight)
+
+            ### Compute Error ###
+            loss = loss_fn(noise_pred, noise)
+            training_losses.append(loss.cpu().item()*gradient_accumulation_steps)
+
+            ### Compute Gradients ###
+            accelerator.backward(loss)
+
+            ### Clip Gradients ###
+            if accelerator.sync_gradients:
+                accelerator.clip_grad_norm_(model.parameters(), 1.0)
+
+
+            optimizer.step()
+            scheduler.step()
+            optimizer.zero_grad(set_to_none=True)
+
+            grad_iters += 1
+            eval_flag = False
+
+        if grad_iters % gradient_accumulation_steps == 0:
+            progress_bar.update(1)
+            completed_steps += 1
+            grad_iters = 0
+            eval_flag = True
+
+        if (completed_steps % print_to_console_interval == 0):
+            print(f"Loss: {accelerator.device}", loss.item())
+            
+        if (completed_steps % evaluation_interval == 0) and eval_flag and accelerator.is_local_main_process:
+
+            print("----------EVALUATING----------")
+            loss_mean = np.mean(training_losses)
+            print("Training Loss:", loss_mean)
+            print("Learning Rate:", optimizer.param_groups[-1]["lr"])
+
+            if loss_mean < best_loss:
+                print("Saving Model!")
+                best_loss = loss_mean
+                accelerator.save_model(model, path_to_checkpoint, safe_serialization=False)
+
+            training_losses = []
+
+            print("Building Conditional Generations!")
+            
+            sample_plot_images(step_idx=completed_steps, 
+                   total_timesteps=total_timesteps, 
+                   sampler=ddpm_sampler, 
+                   image_size=img_size, 
+                   num_channels=3, 
+                   plot_freq=plot_freq, 
+                   model=model, 
+                   conditional=True, 
+                   path_to_save=os.path.join(path_to_generation, "conditional"), 
+                   device=accelerator.device)
+            
+            
+            print("Building UnConditional Generations!")
+
+            sample_plot_images(step_idx=completed_steps, 
+                               total_timesteps=total_timesteps, 
+                               sampler=ddpm_sampler, 
+                               image_size=img_size, 
+                               num_channels=3, 
+                               plot_freq=plot_freq, 
+                               model=model, 
+                               conditional=False, 
+                               path_to_save=os.path.join(path_to_generation, "unconditional"), 
+                               device=accelerator.device)
+
+
+            if completed_steps >= num_training_steps:
+                train = False
+                print("Completed Training!")
+                break
+            
+            
+            
+
+
 
 
 
