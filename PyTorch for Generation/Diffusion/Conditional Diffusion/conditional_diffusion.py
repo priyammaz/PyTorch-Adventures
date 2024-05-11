@@ -765,7 +765,7 @@ def collate_fn(examples):
     ### Stick All Images Together along Batch ###
     images = torch.concatenate(images)
 
-    ### Tokenize Annotations wiht Padding ###
+    ### Tokenize Annotations with Padding ###
     annotation = tokenizer(annot, padding=True, return_tensors="pt")
 
     ### Store Batch as Dictionary ###
