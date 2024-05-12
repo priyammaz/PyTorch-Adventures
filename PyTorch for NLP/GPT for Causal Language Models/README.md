@@ -1,4 +1,4 @@
-## Generative Pretrained Transformers
+## Generative Pretrained Transformers&nbsp; [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1DZ406Ytb-ls1jDI1BovARwYq__ptr1Tx?usp=sharing)
 
 ![Image](https://github.com/priyammaz/HAL-DL-From-Scratch/blob/main/src/visuals/clm_figure.png?raw=true)
 
