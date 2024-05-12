@@ -9,13 +9,13 @@ tar -xf data/aclImdb_v1.tar.gz -C data/
 
 ### Download Harry Potter Books ###
 mkdir data/harry_potter_txt
-wget https://raw.githubusercontent.com/formcept/whiteboard/master/nbviewer/notebooks/data/harrypotter/Book%201%20-%20The%20Philosopher\'s%20Stone.txt -P data/harry_potter_txt/
-wget https://raw.githubusercontent.com/formcept/whiteboard/master/nbviewer/notebooks/data/harrypotter/Book%202%20-%20The%20Chamber%20of%20Secrets.txt -P data/harry_potter_txt/
-wget https://raw.githubusercontent.com/formcept/whiteboard/master/nbviewer/notebooks/data/harrypotter/Book%203%20-%20The%20Prisoner%20of%20Azkaban.txt -P data/harry_potter_txt/
-wget https://raw.githubusercontent.com/formcept/whiteboard/master/nbviewer/notebooks/data/harrypotter/Book%204%20-%20The%20Goblet%20of%20Fire.txt -P data/harry_potter_txt/
-wget https://raw.githubusercontent.com/formcept/whiteboard/master/nbviewer/notebooks/data/harrypotter/Book%205%20-%20The%20Order%20of%20the%20Phoenix.txt -P data/harry_potter_txt/
-wget https://raw.githubusercontent.com/formcept/whiteboard/master/nbviewer/notebooks/data/harrypotter/Book%206%20-%20The%20Half%20Blood%20Prince.txt -P data/harry_potter_txt/
-wget https://raw.githubusercontent.com/formcept/whiteboard/master/nbviewer/notebooks/data/harrypotter/Book%207%20-%20The%20Deathly%20Hallows.txt -P data/harry_potter_txt/
+wget "https://raw.githubusercontent.com/priyammaz/HAL-DL-From-Scratch/main/data/harry_potter_txt/Book%201%20-%20The%20Philosopher's%20Stone.txt" -P data/harry_potter_txt/
+wget "https://raw.githubusercontent.com/priyammaz/HAL-DL-From-Scratch/main/data/harry_potter_txt/Book%202%20-%20The%20Chamber%20of%20Secrets.txt" -P data/harry_potter_txt/
+wget "https://raw.githubusercontent.com/priyammaz/HAL-DL-From-Scratch/main/data/harry_potter_txt/Book%203%20-%20The%20Prisoner%20of%20Azkaban.txt" -P data/harry_potter_txt/
+wget "https://raw.githubusercontent.com/priyammaz/HAL-DL-From-Scratch/main/data/harry_potter_txt/Book%204%20-%20The%20Goblet%20of%20Fire.txt" -P data/harry_potter_txt/
+wget "https://raw.githubusercontent.com/priyammaz/HAL-DL-From-Scratch/main/data/harry_potter_txt/Book%205%20-%20The%20Order%20of%20the%20Phoenix.txt" -P data/harry_potter_txt/
+wget "https://raw.githubusercontent.com/priyammaz/HAL-DL-From-Scratch/main/data/harry_potter_txt/Book%206%20-%20The%20Half%20Blood%20Prince.txt" -P data/harry_potter_txt/
+wget "https://raw.githubusercontent.com/priyammaz/HAL-DL-From-Scratch/main/data/harry_potter_txt/Book%207%20-%20The%20Deathly%20Hallows.txt" -P data/harry_potter_txt/
 
 ### Run Prep Data ###
 python -m prep_data -p data --all
