@@ -1,4 +1,4 @@
-## Robustly Optimized BERT (RoBERTa)
+## Robustly Optimized BERT (RoBERTa)&nbsp; [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1MChQ84-1VKBbjNCmzPQL02hxl-gckEYh?usp=sharing)
 
 ![Image](https://github.com/priyammaz/HAL-DL-From-Scratch/blob/main/src/visuals/masked_language_modeling_vis.png?raw=true)
 
