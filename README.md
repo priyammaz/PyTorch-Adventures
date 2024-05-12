@@ -75,6 +75,7 @@ There are a few other datasets that we will use but are inconsistent to automati
 - **Distributed Training with Huggingface 🤗 Accelerate**
 
 ## Computer Vision ##
+- [**Going Deeper with ResNet**](PyTorch%20for%20Computer%20Vision/ResNet/) &nbsp; [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1OPnOApHCcZFFWkw-zfhNvfyQeswQxgea?usp=sharing)
 - **UNet for Image Segmentation**
 - [**Moving from Convolutions: Vision Transformer**](PyTorch%20for%20Computer%20Vision/Vision%20Transformer) &nbsp; [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1Mh-yaSWwfTs1UcOdRQjRIvLuj6PU6liZ?usp=sharing)
 - **Masked Image Modeling with Masked Autoencoders**
@@ -82,8 +83,8 @@ There are a few other datasets that we will use but are inconsistent to automati
 - **Hierarchical Vision Transformers with Swin Transformer**
   
 ## Natural Language Processing ##
-- **Causal Language Modeling: GPT**
-- **Masked Language Modeling: RoBERTa**
+- [**Causal Language Modeling: GPT**](PyTorch%20for%20NLP/GPT%20for%20Causal%20Language%20Models)&nbsp; [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1DZ406Ytb-ls1jDI1BovARwYq__ptr1Tx?usp=sharing)
+- [**Masked Language Modeling: RoBERTa**](PyTorch%20for%20NLP/RoBERTa%20for%20Masked%20Language%20Models)&nbsp; [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1MChQ84-1VKBbjNCmzPQL02hxl-gckEYh?usp=sharing)
 - **MLP to Mixture of Experts**
 
 ## Speech Processing ##
