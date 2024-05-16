@@ -47,6 +47,7 @@ bash download_data.sh
 There are a few other datasets that we will use but are inconsistent to automatically download and are used in the more advanced architectures! Just download them from the link and save them in the */data* folder! These datasets may also be too large to train in Google Drive so keep that in mind!
 - [CelebA](https://www.kaggle.com/datasets/jessicali9530/celeba-dataset)
 - [MS-COCO](https://cocodataset.org/#download)
+- [ADE20K](http://sceneparsing.csail.mit.edu/)
 
 ## Foundations
 - [**Intro to PyTorch: Exploring the Mechanics**](PyTorch%20Basics/Intro%20to%20PyTorch/) &nbsp; [![button](src/visuals/play_button_small.png)](https://www.youtube.com/watch?v=zQ-OQXBJcyw)  &nbsp; [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1YQanR0ME7ThsU9YwLzXhGvYGOdH2ErSa?usp=sharing)
@@ -76,7 +77,7 @@ There are a few other datasets that we will use but are inconsistent to automati
 
 ## Computer Vision ##
 - [**Going Deeper with ResNet**](PyTorch%20for%20Computer%20Vision/ResNet/) &nbsp; [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1OPnOApHCcZFFWkw-zfhNvfyQeswQxgea?usp=sharing)
-- **UNet for Image Segmentation**
+- [**UNet for Image Segmentation**](PyTorch%20for%20Computer%20Vision/UNET%20for%20Segmentation/)
 - [**Moving from Convolutions: Vision Transformer**](PyTorch%20for%20Computer%20Vision/Vision%20Transformer) &nbsp; [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1Mh-yaSWwfTs1UcOdRQjRIvLuj6PU6liZ?usp=sharing)
 - **Masked Image Modeling with Masked Autoencoders**
 - **Self-Supervised Learning with DINO**
