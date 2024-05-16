@@ -13,3 +13,15 @@ We will be implementing a slightly more modern variant of the UNet, where not on
 Here is an example of how this model performs after some training!
 
 ![ADE20K](https://github.com/priyammaz/HAL-DL-From-Scratch/blob/main/src/visuals/ade20k_unet_prediction.png?raw=true)
+
+### Datasets
+
+Download the data and place in the **data** folder in the root directory of this repository! If you save elsewhere, just update the *path_to_data* argument at the start of the notebook. 
+
+#### Carvana
+
+The main jupyter notebook will be using the Carvana dataset which you can download from Kaggle from their [Image Masking Challenge](https://www.kaggle.com/c/carvana-image-masking-challenge). The zip folder that will download will have a bunch more zip folders inside it. We will only be using the *train.zip* and *train_masks.zip* folders.
+
+#### ADE20K
+
+This is the tougher dataset that you can download from the [MIT Scene Parsing Benchmark](http://sceneparsing.csail.mit.edu/), I only downloaded the **train/val** split of the data.
