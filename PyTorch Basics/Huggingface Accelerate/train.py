@@ -8,7 +8,7 @@ from torch import optim
 from torch.utils.data import DataLoader
 from torchvision import transforms
 from torchvision import datasets
-from torchvision.models import resnet50
+from torchvision.models import resnet18
 from accelerate import Accelerator
 from transformers import get_cosine_schedule_with_warmup
 from torchmetrics import Accuracy
@@ -38,7 +38,11 @@ parser.add_argument("--num_classes",
                     type=int)
 parser.add_argument("--epochs",
                     help="Number of Epochs to Train",
-                    default=100, 
+                    default=90, 
+                    type=int)
+parser.add_argument("--save_checkpoint_interval", 
+                    help="After how many epochs to save model checkpoints",
+                    default=10,
                     type=int)
 parser.add_argument("--batch_size", 
                     help="Effective batch size. If split_batches is false, batch size is \
@@ -50,17 +54,33 @@ parser.add_argument("--gradient_accumulation_steps",
                     default=1, 
                     type=int)
 parser.add_argument("--learning_rate", 
-                    help="Max Learning rate for Cosine Scheduler w/ Warmup", 
-                    default=5e-5,
+                    help="Starting Learning Rate for StepLR", 
+                    default=0.1,
                     type=float)
 parser.add_argument("--weight_decay", 
                     help="Weight decay for optimizer", 
                     default=1e-4, 
                     type=float)
-parser.add_argument("--warmup_steps", 
+parser.add_argument("--momentum",
+                    help="Momentum parameter for SGD optimizer",
+                    default=0.9, 
+                    type=float)
+parser.add_argument("--step_lr_decay",
+                    help="Decay for Step LR", 
+                    default=0.1, 
+                    type=float)
+parser.add_argument("--lr_step_size",
+                    help="Number of epochs for every step", 
+                    default=30, 
+                    type=int)
+parser.add_argument("--warmup_epochs", 
                      help="Number of learning rate warmup iterations on Cosine Scheduler", 
-                     default=500,
+                     default=5,
                      type=int)
+parser.add_argument("--lr_warmup_start_factor",
+                    help="Learning rate start factor (i.e if learning rate is 0.1 and start factor is 0.01, then lr warm-up from 0.1*0.01 to 0.1)",
+                    default=0.1, 
+                    type=float)
 parser.add_argument("--bias_weight_decay",
                     help="Apply weight decay to bias",
                     default=False, 
@@ -100,14 +120,14 @@ local_logger = LocalLogger(path_to_experiment)
 experiment_config = {"epochs": args.epochs,
                      "effective_batch_size": args.batch_size*accelerator.num_processes, 
                      "learning_rate": args.learning_rate,
-                     "warmup_steps": args.warmup_steps}
+                     "warmup_epochs": args.warmup_epochs}
 accelerator.init_trackers(args.experiment_name, config=experiment_config)
 
 ### Define Accuracy Metric ###
 accuracy_fn = Accuracy(task="multiclass", num_classes=args.num_classes).to(accelerator.device)
 
 ### Load Model ###
-model = resnet50()
+model = resnet18()
 if args.num_classes != 1000:
     model.fc = nn.Linear(in_features=512, out_features=args.num_classes)
 model = model.to(accelerator.device)
@@ -138,7 +158,6 @@ path_to_train_data = os.path.join(args.path_to_data, "train")
 path_to_valid_data = os.path.join(args.path_to_data, "validation")
 trainset = datasets.ImageFolder(path_to_train_data, transform=train_transforms)
 testset = datasets.ImageFolder(path_to_valid_data, transform=test_transform)
-
 
 mini_batchsize = args.batch_size // args.gradient_accumulation_steps 
 trainloader = DataLoader(trainset, batch_size=mini_batchsize, shuffle=True, num_workers=args.num_workers, pin_memory=True)
@@ -171,16 +190,16 @@ if (not args.bias_weight_decay) or (not args.norm_weight_decay):
         {"params": weight_decay_params, "weight_decay": args.weight_decay},
         {"params": no_weight_decay_params, "weight_decay": 0.0}
     ]
-    optimizer = torch.optim.AdamW(optimizer_group, lr=args.learning_rate)
+    optimizer = torch.optim.SGD(optimizer_group, lr=args.learning_rate, momentum=args.momentum)
 
 else:
-    optimizer = torch.optim.AdamW(model.parameters(), lr=args.learning_rate)
+    optimizer = torch.optim.SGD(model.parameters(), lr=args.learning_rate, momentum=args.momentum)
 
 ### Define Scheduler ###
 total_training_steps = len(trainloader) * args.epochs
-scheduler = get_cosine_schedule_with_warmup(optimizer, 
-                                            num_warmup_steps=args.warmup_steps, 
-                                            num_training_steps=total_training_steps)
+main_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=args.lr_step_size, gamma=args.step_lr_decay)
+warmup_scheduler = torch.optim.lr_scheduler.LinearLR(optimizer, start_factor=args.lr_warmup_start_factor, total_iters=args.warmup_epochs)
+scheduler = torch.optim.lr_scheduler.SequentialLR(optimizer, schedulers=[warmup_scheduler, main_scheduler], milestones=[args.warmup_epochs])
 
 ### Prepare Everything ###
 model, optimizer, trainloader, testloader, scheduler = accelerator.prepare(
@@ -193,11 +212,14 @@ if args.resume_from_checkpoint is not None:
     accelerator.print(f"Resuming from Checkpoint: {args.resume_from_checkpoint}")
     path_to_checkpoint = os.path.join(path_to_experiment, args.resume_from_checkpoint)
     accelerator.load_state(path_to_checkpoint)
+    starting_checkpoint = int(args.resume_from_checkpoint.split("_")[-1])
+else:
+    starting_checkpoint = 0
 
 all_train_losses, all_test_losses = [], []
 all_train_accs, all_test_accs = [], []
 
-for epoch in range(args.epochs):
+for epoch in range(starting_checkpoint, args.epochs):
     
     accelerator.print(f"Training Epoch {epoch}")
 
@@ -240,9 +262,8 @@ for epoch in range(args.epochs):
             if accelerator.sync_gradients:
                 accelerator.clip_grad_norm_(model.parameters(), args.max_grad_norm)
             
-            ### Update Model and Scheduler ###
+            ### Update Model ###
             optimizer.step()
-            scheduler.step()
             optimizer.zero_grad(set_to_none=True)
 
 
@@ -307,14 +328,19 @@ for epoch in range(args.epochs):
                          test_acc=epoch_test_acc)
         
     ### Log with Weights and Biases ###
-    accelerator.log({"training_loss": epoch_train_loss,
+    accelerator.log({"learning_rate": scheduler.get_last_lr()[0],
+                     "training_loss": epoch_train_loss,
                      "testing_loss": epoch_test_loss, 
                      "training_acc": epoch_train_acc, 
                      "testing_acc": epoch_test_acc}, step=epoch)
     
+    ### Iterate Learning Rate Scheduler ###
+    scheduler.step()
+
     ### Checkpoint Model ###
-    path_to_checkpoint = os.path.join(path_to_experiment, f"checkpoint_{epoch}")
-    accelerator.save_state(output_dir=path_to_checkpoint)
+    if epoch % args.save_checkpoint_interval == 0:
+        path_to_checkpoint = os.path.join(path_to_experiment, f"checkpoint_{epoch}")
+        accelerator.save_state(output_dir=path_to_checkpoint)
 
 ### End Training for Trackers to Exit ###
 accelerator.end_training()
