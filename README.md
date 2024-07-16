@@ -1,4 +1,4 @@
-# Deep Learning from End to End
+# Exploratory Data Adventures!
 
 ![banner](src/visuals/banner.png)
 
