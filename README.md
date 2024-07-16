@@ -10,27 +10,13 @@
 
 ### Open Source Learning and the Democratization of AI
 
-The National Center for Supercomputing Applications (NCSA) Center of AI Innovation (CAII) at the University of Illinois
-Urbana-Champaign has a focus on driving and enabling student-driven research. Their goal is to give access to the state-of-the-art
-tools and hardware so people can find novel ways to solve unanswered problems. I am one such student that has learned an incredible amount 
-of knowledge and gained a lot of intuition on Artificial Intelligence through my mentors here. 
+The greatest aspect of Artificial Intelligence today is its open source nature. Very rarely in history have key technologies, especially those as powerful as these models developed today, have been made completely available to the public. Without the incredible online resources made by all of the contributing scientists and engineers, I never would have learned as much as I know today. This repository acts as a documentation of my own exploration as well as an attempt to teach everything I learn to others. I will try my best to cite everyone and everything I reference that helped me learn everything as well!
 
-Along with the NCSA, I also want to acknowledge all the amazing open source materials that I have found and learned 
-from over the years. These resources often filled the gap for me between the theory that justified the model architecture and the actual implementation of them.
-I will do my best to reference all that work throughout, so you can see where I had learned it from initially!
-The purpose of this repository is to bring together that wealth of knowledge to truly be a one-stop-shop for everyone from beginners
-to researchers to gain something from and continue to push the boundaries of Open Source Research!!
+The main limitation for researchers in this field today is we normally don't have buckets of GPU's just sitting around to train with! Every example I do will be a proof of concept, but to the best of my ability I will attempt to reproduce any model that is feasible!
 
-**If you want to contribute**, (and please do it you want!!) go ahead an submit a PR and I can review it!
-### Getting Started
-All of these tutorials can easily be run on the [HAL](https://wiki.ncsa.illinois.edu/display/ISL20/HAL+cluster)
-system at the NCSA and you can follow the new users instructions [here](https://wiki.ncsa.illinois.edu/display/ISL20/New+User+Guide+for+HAL+System)
-to setup an account. 
+#### Contributions
 
-If you prefer to use [Google Colaboratory](https://colab.research.google.com/), that will also work fine! You will
-just need to setup the environment for specific packages needed (Easy pip installs to get those). For the datasets, you 
-can save them in your Google Drive and access them from there!
-
+I am typically more wrong than I am right! If you find any errors in my work, that means there is an error in my knowledge. Please let me know as I want this to be as accurate as possible, but also, I want to learn as much as I can! If you want to contribute anything yourself, just submit a PR and I will review it!
 
 ### Data Prep ###
 We will be using a couple of datasets in our Deep Learning Adventures!!
