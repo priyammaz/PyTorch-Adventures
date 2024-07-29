@@ -16,7 +16,7 @@ I wanted to see how my model would do if I scaled it up a bit and trained it for
 
 ### Run it yourself!
 
-If you want to run this script yourself, just make sure you have Huggingface Accelerate setup and the data downloaded! Then you can run this to start your own diffusion training!
+If you want to run this script yourself, just make sure you have Huggingface Accelerate setup and the data downloaded! After create some folders for your working directory where checkpoints will be saved and another generation directory where your images will save as it trains. Makes sure to pass those paths to the arguments below and then you can run this to start your own diffusion training!
 
 ```
 accelerate launch train.py --experiment_name "CELEBA_DIFFUSION" \
