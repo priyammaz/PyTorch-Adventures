@@ -78,7 +78,7 @@ There are a few other datasets that we will use but are inconsistent to automati
 - **Intro to Audio Processing in PyTorch**
 - **Connectionist Temporal Classification Loss**
 - **Intro to Automatic Speech Recognition**
-- **ASR through Self-Supervised Learning: Wav2Vec2**
+- [**Quantized Audio Pre-Training: Wav2Vec2**](PyTorch%20for%20Speech%20Processing/Wav2Vec2/)
 - **RNN Transducer as an Alternative to CTC**
 
 ## Generative AI
