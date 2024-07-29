@@ -71,10 +71,10 @@
 #                            --num_workers 16 \
 # 						   --seed 0 
 
-accelerate launch train_old.py --experiment_name "wav2vec2_test_train" \
+accelerate launch train_old.py --experiment_name "wav2vec2_testing" \
                            --working_directory "work_dir" \
                            --path_to_data_root "/mnt/datadrive/data/LibriSpeech/" \
-                           --train_splits train-clean-100 train-clean-360 \
+                           --train_splits dev-clean test-clean \
                            --test_splits dev-clean test-clean \
 						   --minimum_audio_duration 2.0 \
                            --maximum_audio_duration 20.0 \
