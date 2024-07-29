@@ -14,3 +14,28 @@ I wanted to see how my model would do if I scaled it up a bit and trained it for
 ### Example Generation from 250K steps of Training
 ![example_gen](https://raw.githubusercontent.com/priyammaz/PyTorch-Adventures/main/src/visuals/celeba_diffusion.png)
 
+### Run it yourself!
+
+If you want to run this script yourself, just make sure you have Huggingface Accelerate setup and the data downloaded! Then you can run this to start your own diffusion training!
+
+```
+accelerate launch train.py --experiment_name "CELEBA_DIFFUSION" \
+                           --path_to_data "<PATH_TO_YOUR_DATA>" \
+                           --working_directory "<PATH_TO_YOUR_WORKING_DIRECTORY>" \
+                           --generated_directory "<PATH_TO_YOUR_GENERATION_DIRECTORY>" \
+                           --num_diffusion_timesteps 1000 \
+                           --plot_freq_interval 100 \
+                           --num_generations 3 \
+                           --num_training_steps 250000 \
+                           --warmup_steps 2000 \
+                           --evaluation_interval 500 \
+                           --batch_size 64 \
+                           --gradient_accumulation_steps 2 \
+                           --learning_rate 1e-4 \
+                           --loss_fn mse \
+                           --img_size 128 \
+                           --starting_channels 128 \
+                           --num_workers 24 \
+                           --num_keep_checkpoints 3
+
+```
