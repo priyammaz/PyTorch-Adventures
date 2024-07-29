@@ -7,4 +7,4 @@ Diffusion models (especially the UNet architecture) can become pretty large pret
 
 ### Example Generation
 
-![example_gen](generated/124000.png)
+![example_gen](https://raw.githubusercontent.com/priyammaz/PyTorch-Adventures/main/src/visuals/celeba_diffusion.png)
