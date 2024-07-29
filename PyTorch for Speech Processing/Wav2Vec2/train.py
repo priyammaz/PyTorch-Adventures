@@ -5,7 +5,6 @@ import argparse
 import torch
 from torch.utils.data.dataloader import DataLoader
 from accelerate import Accelerator
-from accelerate.utils import TorchDynamoPlugin
 from tqdm import tqdm
 from transformers import get_scheduler, set_seed
 
@@ -649,8 +648,15 @@ accelerator.register_for_checkpointing(scheduler)
 
 ### RESUME FROM CHECKPOINT ###
 if args.resume_from_checkpoint is not None:
+
+    ### Grab path to checkpoint ###
     path_to_checkpoint = os.path.join(path_to_experiment, args.resume_from_checkpoint)
-    accelerator.load_state(path_to_checkpoint)
+    
+    ### Load checkpoint on main process first, recommended here: (https://huggingface.co/docs/accelerate/en/concept_guides/deferring_execution) ###
+    with accelerator.main_process_first():
+        accelerator.load_state(path_to_checkpoint)
+    
+    ### Start completed steps from checkpoint index ###
     completed_steps = int(args.resume_from_checkpoint.split("_")[-1])
     accelerator.print(f"Resuming from Iteration: {completed_steps}")
 else:
@@ -831,15 +837,20 @@ while train:
                 model.train()
 
             ### Checkpoint Model (Only need main process for this) ###
-            if (completed_steps % args.checkpoint_interval == 0) and accelerator.is_main_process:
-            
+            if (completed_steps % args.checkpoint_interval == 0):
+                
                 ### Save Checkpoint ### 
                 path_to_checkpoint = os.path.join(path_to_experiment, f"checkpoint_{completed_steps}")
 
                 if accelerator.is_main_process:
                     progress_bar.write(f"Saving Checkpoint to {path_to_checkpoint}")
 
-                accelerator.save_state(output_dir=path_to_checkpoint)
+                ### Make sure that all processes have caught up before saving checkpoint! ###
+                accelerator.wait_for_everyone()
+
+                ### Save checkpoint using only the main process ###
+                if accelerator.is_main_process:
+                    accelerator.save_state(output_dir=path_to_checkpoint)
 
                 ### Delete Old Checkpoints ###
                 if args.num_keep_checkpoints is not None:
@@ -854,7 +865,10 @@ while train:
                                 path_to_checkpoint_to_delete = os.path.join(path_to_experiment, checkpoint_to_delete)
                                 if os.path.isdir(path_to_checkpoint_to_delete):
                                     shutil.rmtree(path_to_checkpoint_to_delete)
-
+                                    
+                ### Let all processes hang out while files are being deleted with the main process ###
+                accelerator.wait_for_everyone()
+                
             if completed_steps >= args.num_training_steps:
                 train = False
                 if accelerator.is_main_process:
