@@ -59,7 +59,7 @@ There are a few other datasets that we will use but are inconsistent to automati
 
 - [**Large Model Considerations: Distributed Training**](PyTorch%20Basics/Distributed%20Training/) &nbsp; [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1cyxgaWonj-FrfEbZvTwAVepkZhaF_sda?usp=sharing)
 
-- **Distributed Training with Huggingface 🤗 Accelerate**
+- [**Distributed Training with Huggingface 🤗 Accelerate**](PyTorch%20Basics/Huggingface%Accelerate/)
 
 ## Computer Vision ##
 - [**Going Deeper with ResNet**](PyTorch%20for%20Computer%20Vision/ResNet/) &nbsp; [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1OPnOApHCcZFFWkw-zfhNvfyQeswQxgea?usp=sharing)
