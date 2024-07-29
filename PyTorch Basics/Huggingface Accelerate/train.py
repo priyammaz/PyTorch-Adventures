@@ -8,7 +8,7 @@ from torch import optim
 from torch.utils.data import DataLoader
 from torchvision import transforms
 from torchvision import datasets
-from torchvision.models import resnet18
+from model import ResNet50
 from accelerate import Accelerator
 from transformers import get_cosine_schedule_with_warmup
 from torchmetrics import Accuracy
@@ -127,10 +127,7 @@ accelerator.init_trackers(args.experiment_name, config=experiment_config)
 accuracy_fn = Accuracy(task="multiclass", num_classes=args.num_classes).to(accelerator.device)
 
 ### Load Model ###
-model = resnet18()
-if args.num_classes != 1000:
-    model.fc = nn.Linear(in_features=512, out_features=args.num_classes)
-model = model.to(accelerator.device)
+model = ResNet50(num_classes=args.num_classes)
 
 ### Set Transforms for Training and Testing ###
 IMAGENET_MEAN = [0.485, 0.456, 0.406]

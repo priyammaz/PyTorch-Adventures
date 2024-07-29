@@ -1,12 +1,12 @@
 #!/bin/bash
 
-accelerate launch train.py --experiment_name="ResNet18_Train" \
+accelerate launch train.py --experiment_name="ResNet50" \
                            --path_to_data="/mnt/datadrive/data/ImageNet" \
                            --working_directory="work_dir" \
                            --num_classes=1000 \
                            --epochs=90 \
-                           --save_checkpoint_interval=10 \
-                           --batch_size=256 \
+                           --save_checkpoint_interval=2 \
+                           --batch_size=512 \
                            --gradient_accumulation_steps=1 \
                            --learning_rate=0.1 \
                            --weight_decay=1e-4 \
