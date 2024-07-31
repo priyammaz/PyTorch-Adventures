@@ -11,10 +11,16 @@ Wav2Vec 2.0 basically takes this idea from before but makes a few importance cha
 ![architecture](https://raw.githubusercontent.com/priyammaz/PyTorch-Adventures/main/src/visuals/wav2vec2_architecture.png)
 
 
+## Shoutouts
+
+- [🤗 Huggingface Transformers](https://huggingface.co/) The code was largely based off of their ```modeling_wav2vec2.py```, this was basically a dumbed down and simplified version of the work they did!
+- [patrickvonplaten](https://github.com/patrickvonplaten) The training script was largely inspired by the ```run_wav2vec2_pretraining_no_trainer.py```
+- [Awni Hannun](https://awnihannun.com/) for their really great explanation of how [CTC Loss](https://distill.pub/2017/ctc/) works! Although I was just using the PyTorch CTC Loss, it was helpful to understand anyway!
+
 ## Preparing Data ###
 
 ### Download Data
-First step is we need to download our LibriSpeech data (which is about 960 Hours of english audio and corresponding transcripts). We can easily do this from OpenSLR (https://www.openslr.org/12). I included the following script ```prepare_data.sh``` in the ```data``` folder that you can run via ```bash data/prepare_data.sh``` which will download all the data to the data folder and create a LibriSpeech folder that will contain all the subfolders with audios and transcripts. 
+First step is we need to download our LibriSpeech data (which is about 960 Hours of english audio and corresponding transcripts). We can easily do this from [OpenSLR](https://www.openslr.org/12). I included the following script ```prepare_data.sh``` in the ```data``` folder that you can run via ```bash data/prepare_data.sh``` which will download all the data to the data folder and create a LibriSpeech folder that will contain all the subfolders with audios and transcripts. 
 
 ```bash
 path_to_store="data/"
@@ -38,7 +44,11 @@ tar -xvzf $path_to_store$dev_clean.tar.gz -C $path_to_store
 tar -xvzf $path_to_store$test_clean.tar.gz -C $path_to_store
 ```
 
-If you want to change the download directory, just update the path in the ```path_to_store```! Wherever you pick your path to be, it will create a folder inside it called ```LibriSpeech```
+If you want to change the download directory, just update the path in the ```path_to_store```! Wherever you pick your path to be, it will create a folder inside it called ```LibriSpeech```. Once ready, just run 
+
+```bash
+bash data/prepare_data.sh
+```
 
 ### Compute Durations
 To be able to pre-filter our data by duration (i.e. we only have enough GPU memory to train upto 15 second audio clips) it would be convenient to just have the durations upfront. So I created a quick script that will create a bunch of CSV files in the audio directories that store the name of the audio file and the duration in seconds! We can do this with the quick helper script ```compute_durations.py```.
@@ -49,7 +59,9 @@ python compute_durations.py --path_to_librispeech_data "data/LibriSpeech"
 
 ## Pre-Training Wav2Vec2 Model ###
 
-To train our model we can use the following command! All you need to do is provide the path to the working directory (where you want to save your checkpoints) and your path to the data root for librispeech (the folder which includes ```train-clean-100```, ```train-clean-360```, ```train-other-500```, ```dev-clean```, ```test-clean```). A more complete command is found in ```pretrain.sh``` and includes all the arguments and their descriptions that we can pass in!
+To train our model we can use the following command! All you need to do is provide the path to the working directory (where you want to save your checkpoints) and your path to the data root for librispeech (the folder which includes ```train-clean-100```, ```train-clean-360```, ```train-other-500```, ```dev-clean```, ```test-clean```). A more complete command is found in ```pretrain.sh``` and includes all the arguments that we can pass in! If you need any information on the arguments you can just run ```python pretrain_wav2vec2.py --help```.
+
+Also, if you are running on an HPC, there can be a wallclock, so you need to resume training and we can do that too. The script will automatically create checkpoints, and you can indicate the interval of those checkpoints with the ```--checkpoint_interval``` argument. You can then resume from checkpoint by passing in ```--resume_from_checkpoint "checkpoint_{step}"``` where **step** is what training step the model was on when checkpointed. 
 
 ```bash
 accelerate launch train.py --experiment_name "Wav2Vec2_Pretraining" \
@@ -74,5 +86,6 @@ accelerate launch train.py --experiment_name "Wav2Vec2_Pretraining" \
                            --learning_rate 0.001 \
                            --num_workers 8 \
                            --log_wandb \
-                           --seed 0 
+                           --seed 0 \
+                           --resume_from_checkpoint "checkpoint_{step}"
 ```

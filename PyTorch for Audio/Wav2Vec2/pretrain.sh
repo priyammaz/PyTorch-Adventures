@@ -1,54 +1,55 @@
-accelerate launch train.py --experiment_name "Wav2Vec2_Pretraining" \                           # Experiment Name (Name of folder and logging)
-                           --working_directory "<PATH_TO_WORK_DIR>" \                           # Path to Working Directory 
-                           --path_to_data_root "<PATH_TO_DATA_ROOT>" \                          # Path to data root (downloaded from OpenSLR https://www.openslr.org/12)
-                           --train_splits train-clean-100 train-clean-360 train-other-500 \     # Which splits we want to train on
-                           --test_splits dev-clean test-clean \                                 # Which splits we want to evaluate on
-                           --minimum_audio_duration 2.0 \                                       # Minimum audio duration in seconds
-                           --maximum_audio_duration 15.0 \                                      # Maximum audio duration in seconds
-                           --sampling_rate 16000 \                                              # Sampling rate of our audio (we will resample to this frequency)
-                           --masking_probability 0.065 \                                        # Masking Probability (following masking logic from Wav2Vec2 Paper)
-                           --masking_span_length 10 \                                           # Number of tokens in each masked span 
-                           --minimum_spans 2 \                                                  # Minimum number of spans to have in each audui
-                           --num_negatives 100 \                                                # Number of quantized negatives to sample for contrastive loss
-                           --conv_dim 512 512 512 512 512 512 512 \                             # Number of channels in each convolution in encoder
-                           --conv_kernel 10 3 3 3 3 2 2 \                                       # Kernel size in each convolution in encoder
-                           --conv_stride 5 2 2 2 2 2 2 \                                        # Stride in each convolution in encoder
-                           --feature_proj_dropout_p 0.0 \                                       # Dropout of projection from Convolutional channels output to Transformer embedding dimension
-                           --conv_positional_emb_groups 16 \                                    # Number of groups in grouped convolution used for positional embeddings
-                           --conv_positional_emb_kernel_size 128 \                              # Kernel size of convolutional positional embeddings
-                           --conv_positional_emb_drop_p 0.0 \                                   # Dropout on convolutional positional embeddings
-                           --num_transformer_layers 12 \                                        # Number of transformer blocks
-                           --num_attention_heads 12 \                                           # Number of attention heads in each transformer block
-                           --embedding_dimension 768 \                                          # Transformer embedding dimensions
-                           --mlp_ratio 4 \                                                      # MLP ratio in transformer feedforward layers
-                           --mlp_dropout_p 0.0 \                                                # Dropout in feedforward layers
-                           --attention_dropout_p 0.0 \                                          # Attention dropout on product of queries and keys
-                           --transformer_encoder_dropout_p 0.0 \                                # Dropout of transformer encoder on output of attention before feedforward
-                           --layer_dropout 0.0 \                                                # Dropout of entire transformer layers. (NOT FUNCTIONAL IN DDP, SET TO 0.0 FOR MULTIGPU TRAINING)
-                           --initializer_range 0.02 \                                           # Standard deviation of gaussian normal initialization of linear layers
-                           --num_codevector_groups 2 \                                          # Number of codebooks in gumbel softmax
-                           --num_codevectors_per_group 320 \                                    # Number of codevectors in each codebook in gumbel softmax
-                           --codevector_dim 256 \                                               # Embedding dimension of each codevector in gumbel softmax
-                           --pre_quantizer_dropout_p 0.0 \                                      # Dropout before quantizing convolutional encoded raw audio waveforms
-                           --max_gumbel_temperature 2.0 \                                       # Maximum gumbel temperature that is decayed during training
-                           --min_gumbel_temperature 0.5 \                                       # Minimum gumbel temperature of the decay
-                           --gumbel_temperature_decay 0.999995 \                                # Decay factor on the gumbel temperature
-                           --contrastive_logits_temperature 0.1 \                               # Scale on the cosine similarity computation for contrastive loss
-                           --diversity_loss_weight 0.1 \                                        # Weight of the diversity loss in final loss calculation (Contrastive_Loss + weight*Diversity_Loss)
-                           --per_gpu_batch_size 64 \                                            # Total batch size per GPU
-                           --gradient_accumulation_steps 8 \                                    # Splits the total batch size per gpu into gradient steps (make sure per_gpu_batch_size % gradient_accumulation_steps == 0)
-                           --num_training_steps 200000 \                                        # Total number of training steps in model
-                           --num_warmup_steps 32000 \                                           # Total number of warmup steps during training
-                           --lr_scheduler_type polynomial \                                     # Which LR scheduler do you want to use? Check transformers.get_scheduler to see your options
-                           --evaluation_interval 1000 \                                         # After how many steps do you want to evaluate the model on evaluation data
-                           --checkpoint_interval 1000 \                                         # After how many steps do you want to checkpoint the model
-                           --learning_rate 0.005 \                                              # What learning rate do you want to use? This is the max learning rate that we warmup to and then decay from
-                           --weight_decay 0.01 \                                                # Weight decay on the parameters. If additional flags (--bias_weight_decay and --norm_weight_decay) are provided, then it will also apply decay to bias and normalization
-                           --adam_beta1 0.9 \                                                   # Adam weight value for Beta 1
-                           --adam_beta2 0.98 \                                                  # Adam weight value for Beta 2
-                           --adam_epsilon 1e-6 \                                                # Adam epsilon value for Beta 1
-                           --num_keep_checkpoints 5 \                                           # Number of checkpoints to keep (will delete old checkpoints and keep the N newest ones, but i havent included any logic to keep the best checkpoint, this is mainly for learning!)
-                           --num_workers 8 \                                                    # Number of workers (CPU workers) used for DataLoader. Doesnt need too many, audio isnt very hard to load and resample
-                           --logging_steps 1 \                                                  # After how many steps do you want to print to console? This will also log to Weights and Biases if flag is enabled (--log_wandb)
-						   --log_wandb \                                                        # Flag enabled Weights and Biases logging (will throw an error if WandB is not setup on your system, setup instructions at https://docs.wandb.ai/quickstart)
-                           --seed 0                                                             # Set seed for reproducible training
+accelerate launch pretrain_wav2vec2.py \
+    --experiment_name "TESTING" \
+    --working_directory "work_dir" \
+    --path_to_data_root "/mnt/datadrive/data/LibriSpeech" \
+    --train_splits train-clean-100 train-clean-360 train-other-500 \
+    --test_splits dev-clean test-clean \
+    --minimum_audio_duration 2.0 \
+    --maximum_audio_duration 15.0 \
+    --sampling_rate 16000 \
+    --masking_probability 0.065 \
+    --masking_span_length 10 \
+    --minimum_spans 2 \
+    --num_negatives 100 \
+    --conv_dim 512 512 512 512 512 512 512 \
+    --conv_kernel 10 3 3 3 3 2 2 \
+    --conv_stride 5 2 2 2 2 2 2 \
+    --feature_proj_dropout_p 0.0 \
+    --conv_positional_emb_groups 16 \
+    --conv_positional_emb_kernel_size 128 \
+    --conv_positional_emb_drop_p 0.0 \
+    --num_transformer_layers 12 \
+    --num_attention_heads 12 \
+    --embedding_dimension 768 \
+    --mlp_ratio 4 \
+    --mlp_dropout_p 0.0 \
+    --attention_dropout_p 0.0 \
+    --transformer_encoder_dropout_p 0.0 \
+    --layer_dropout 0.0 \
+    --initializer_range 0.02 \
+    --num_codevector_groups 2 \
+    --num_codevectors_per_group 320 \
+    --codevector_dim 256 \
+    --pre_quantizer_dropout_p 0.0 \
+    --max_gumbel_temperature 2.0 \
+    --min_gumbel_temperature 0.5 \
+    --gumbel_temperature_decay 0.999995 \
+    --contrastive_logits_temperature 0.1 \
+    --diversity_loss_weight 0.1 \
+    --per_gpu_batch_size 64 \
+    --gradient_accumulation_steps 8 \
+    --num_training_steps 200000 \
+    --num_warmup_steps 32000 \
+    --lr_scheduler_type polynomial \
+    --evaluation_interval 500 \
+    --checkpoint_interval 1000 \
+    --learning_rate 0.001 \
+    --weight_decay 0.01 \
+    --adam_beta1 0.9 \
+    --adam_beta2 0.98 \
+    --adam_epsilon 1e-6 \
+    --num_keep_checkpoints 5 \
+    --num_workers 8 \
+    --logging_steps 1 \
+    --log_wandb \
+    --seed 0                                               
