@@ -20,7 +20,6 @@ class Wav2Vec2ForPreTrainingOutput:
 class Wav2Vec2Config:
 
     ### FEATURE ENCODER CONVOLUTION CONFIG ###
-    audio_input_channels: int = 1
     conv_dim: tuple = (512, 512, 512, 512, 512, 512, 512)
     conv_stride: tuple = (5, 2, 2, 2, 2, 2, 2)
     conv_kernel: tuple = (10, 3, 3, 3, 3, 2, 2)

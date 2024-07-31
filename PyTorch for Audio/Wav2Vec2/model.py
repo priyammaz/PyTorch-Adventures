@@ -68,7 +68,9 @@ class Wav2Vec2FeatureEncoder(nn.Module):
             "Check Config for same number of convolution components" 
         
         number_of_conv_blocks = len(config.conv_kernel)
-        conv_channels = (config.audio_input_channels, ) + tuple(config.conv_dim)
+
+        ### Convolution starts with 1 input channel (as our audio is single channel audio) ###
+        conv_channels = (1, ) + tuple(config.conv_dim)
 
         self.conv_layers = nn.ModuleList()
         for conv_idx in range(number_of_conv_blocks):

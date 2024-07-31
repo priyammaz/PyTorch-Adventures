@@ -1,52 +1,18 @@
 import os
 import numpy as np
-import librosa
-import torchaudio
 import pandas as pd
-import torch
 import librosa
+import torch
+import torchaudio
 from torch.utils.data import Dataset, DataLoader
 from tqdm import tqdm
 
 from utils import (
     compute_span_mask,
-    sample_negative_indices,
-    compute_encoded_lengths, 
+    sample_negative_indices, 
     compute_sub_attention_mask, 
     Wav2Vec2Config
 )
-
-
-def precompute_audio_durations(path_to_data_root: str):
-
-    splits = ["train-clean-100", "train-clean-360", "train-other-500", "dev-clean", "test-clean"]
-
-    for split in splits:
-        
-        path_to_split = os.path.join(path_to_data_root, split)
-
-        if os.path.isdir(path_to_split):
-            print(f"Computing Durations of {split}")
-            for speaker in tqdm(os.listdir(path_to_split)):
-                path_to_speaker = os.path.join(path_to_split, speaker)
-
-                for section in os.listdir(path_to_speaker):
-                    path_to_section = os.path.join(path_to_speaker, section)
-
-                    ### Grab Files and Split FLAC Audios and Text Transcripts ###
-                    audio_files = [file for file in os.listdir(path_to_section) if ".flac" in file]              
-                
-                    root_duration_dict = {"root": [], "duration": []}
-                    for file in audio_files:
-                        file_root = file.split(".")[0]
-                        audio_duration = librosa.get_duration(path=os.path.join(path_to_section, file))
-                        root_duration_dict["root"].append(file_root)
-                        root_duration_dict["duration"].append(audio_duration)
-
-                    data = pd.DataFrame(root_duration_dict)
-                    path_to_section_duration = os.path.join(path_to_section, "audio_durations.csv")
-                    data.to_csv(path_to_section_duration, index=False)
-
 
 class LibriSpeechDataset(Dataset):
 
@@ -67,6 +33,7 @@ class LibriSpeechDataset(Dataset):
                  max_audio_duration=20.0, 
                  min_audio_duration=2.0,
                  sampling_rate=16000,
+                 num_audio_channels=1, 
                  truncate_audio=True,
                  return_transcripts=True):
         
@@ -76,6 +43,7 @@ class LibriSpeechDataset(Dataset):
         self.sampling_rate = sampling_rate
         self.return_transcripts = return_transcripts
         self.truncate_audio = truncate_audio
+        self.num_audio_channels = num_audio_channels
         self.min_audio_samples = int(min_audio_duration * sampling_rate)
         self.max_audio_samples = int(max_audio_duration * sampling_rate)
 
@@ -126,17 +94,18 @@ class LibriSpeechDataset(Dataset):
         path_to_audio, transcript = self.librispeech_data[idx]
 
         ### Load Audio ###
-        audio, sr = librosa.load(path_to_audio, sr=self.sampling_rate)
+        audio, orig_sr = torchaudio.load(path_to_audio, num_frames=self.max_audio_samples)
 
-        ### Truncate Audio ###
-        if (len(audio) > self.max_audio_samples) and self.truncate_audio:
-            audio = audio[:self.max_audio_samples]
+        ### Resample Audio ###
+        if orig_sr is not self.sampling_rate:
+            audio = torchaudio.functional.resample(audio, orig_freq=orig_sr, new_freq=self.sampling_rate)
+
+        ### If only a single channel squeeze out the channel dimension ###
+        if self.num_audio_channels == 1:
+            audio = audio.squeeze()
 
         ### Normalize to Zero Mean Unit Variance ###
         normed_audio = ((audio - audio.mean()) / np.sqrt(audio.var() + 1e-7))
-
-        ### Convert to Tensor ###
-        normed_audio = torch.from_numpy(normed_audio)
 
         if self.return_transcripts:
             return normed_audio, transcript
@@ -194,9 +163,8 @@ if __name__ == "__main__":
     ### Define Dataset ###    
     dataset = LibriSpeechDataset(path_to_data, include_splits=["dev-clean", "test-clean"], return_transcripts=False, max_audio_duration=20)
     config = Wav2Vec2Config()
-    print(len(dataset))
-    loader = DataLoader(dataset, batch_size=4, collate_fn=Wav2Vec2CollateFunctionForPreTraining(config), num_workers=24)
+    loader = DataLoader(dataset, batch_size=4, collate_fn=Wav2Vec2CollateFunctionForPreTraining(config), num_workers=0)
     for data in tqdm(loader):
-        print(data)
+        print(data["input_values"])
         break
         

@@ -451,12 +451,12 @@ def parse_args():
     #############################
     ### LOGGING CONFIGURATION ###
     #############################
-
+    
     parser.add_argument(
-        "--print_to_console_freq", 
-        help="After how many iterations do you want to print current loss to console",
-        type=int,
-        default=1
+        "--log_wandb", 
+        help="Flag to enable logging to wandb",
+        default=False, 
+        action=argparse.BooleanOptionalAction
     )
 
     args = parser.parse_args()
@@ -483,7 +483,17 @@ def multiply_gradients(params, constant):
             param.grad.data.mul_(constant)
 
 def compute_gradient_norms(params, scale=1):
-    """Compute grad norm given a gradient scale."""
+    """
+    Compute the gradient norms as we are training. This is a good way to keep an eye on model
+    health, if the gradients are extremely large or basically 0 we know there is a problem. As 
+    recommended by the pretraining example from Huggingface we want this to be roughly between 
+    0.5 and 2 during training!
+
+    Also, if we are using mixed precision training, our gradients are automatically scaled by 
+    huggingface accelerate. By default it is 1, but if we have an overflow, accelerate will 
+    scale the gradients, so we pass in that scale as well here just so we are reporting what the 
+    optimizer is seeing. 
+    """
     total_norm = 0.0
     for p in params:
         if p.grad is not None:
@@ -520,13 +530,13 @@ if args.seed is not None:
 ### Instantiate Accelerate ###
 path_to_experiment = os.path.join(args.working_directory, args.experiment_name)
 accelerator = Accelerator(project_dir=path_to_experiment,
-                          log_with="wandb")
-accelerator.init_trackers(args.experiment_name)
+                          log_with="wandb" if args.log_wandb else None)
+if args.log_wandb:
+    accelerator.init_trackers(args.experiment_name)
 
 ### Prepare Config File ###
 config = Wav2Vec2Config(
 
-    audio_input_channels=args.audio_input_channels,
     conv_dim=tuple(args.conv_dim), 
     conv_stride=tuple(args.conv_stride),
     conv_kernel=tuple(args.conv_kernel),
@@ -565,14 +575,14 @@ accelerator.print("Number of Parameters:", params)
 
 ### Prepare Dataset ###
 train_set = LibriSpeechDataset(path_to_data_root=args.path_to_data_root, 
-                               include_splits=["dev-clean", "test-clean"],
+                               include_splits=args.train_splits,
                                max_audio_duration=args.maximum_audio_duration, 
                                min_audio_duration=args.minimum_audio_duration,
                                sampling_rate=args.sampling_rate,
                                return_transcripts=False)
 
 test_set = LibriSpeechDataset(path_to_data_root=args.path_to_data_root, 
-                              include_splits=["dev-clean", "test-clean"],
+                              include_splits=args.test_splits,
                               max_audio_duration=args.maximum_audio_duration, 
                               min_audio_duration=args.minimum_audio_duration,
                               sampling_rate=args.sampling_rate,
@@ -582,14 +592,14 @@ data_collator = Wav2Vec2CollateFunctionForPreTraining(config)
 minibatch_size = args.per_gpu_batch_size // args.gradient_accumulation_steps
 train_dataloader = DataLoader(train_set, 
                               batch_size=minibatch_size, 
-                              shuffle=True, 
-                              num_workers=16, 
+                              shuffle=False, 
+                              num_workers=8, 
                               collate_fn=data_collator)
 
 eval_dataloader = DataLoader(test_set, 
                              batch_size=minibatch_size, 
                              shuffle=False, 
-                             num_workers=16, 
+                             num_workers=8, 
                              collate_fn=data_collator)
 
 ### PREPARE OPTIMIZER ###
@@ -676,8 +686,8 @@ while train:
     ### Keep Track of Percent of Tokens Masked Out ###
     accumulated_percent_masked = 0
     
-    for batch in train_dataloader:
-        
+    for batch in train_dataloader:        
+
         ### Compute the Number of Masked Tokens to Scale Gradients ###
         num_losses = batch["mask_time_indices"].sum()
         
@@ -741,21 +751,29 @@ while train:
             ### Log Results!! ###
             if completed_steps % args.logging_steps == 0:
                 
+                loss = outputs.loss.detach()
+                contrastive_loss = outputs.contrastive_loss.detach()
+                diversity_loss = outputs.diversity_loss.detach()
+                perplexity = outputs.codevector_perplexity.detach()
+                hours_per_batch = accumulated_hours_per_batch.detach()
+                percent_masked = accumulated_percent_masked.detach()
+
                 if accelerator.state.num_processes > 1:
-                    loss = accelerator.gather_for_metrics(outputs.loss).sum() / num_losses
-                    contrastive_loss = accelerator.gather_for_metrics(outputs.contrastive_loss).sum() / num_losses
-                    diversity_loss = accelerator.gather_for_metrics(outputs.diversity_loss).sum() / num_losses
-                    perplexity = accelerator.gather_for_metrics(outputs.codevector_perplexity).sum() / num_losses
-                    hours_per_batch = accelerator.gather_for_metrics(accumulated_hours_per_batch).sum()
-                    percent_masked = accelerator.gather_for_metrics(accumulated_percent_masked).mean()
+
+                    loss = torch.sum(accelerator.gather_for_metrics(loss)) / num_losses
+                    contrastive_loss = torch.sum(accelerator.gather_for_metrics(contrastive_loss)) / num_losses
+                    diversity_loss = torch.sum(accelerator.gather_for_metrics(diversity_loss)) / num_losses
+                    perplexity = torch.sum(accelerator.gather_for_metrics(perplexity)) / num_losses
+                    hours_per_batch = torch.sum(accelerator.gather_for_metrics(hours_per_batch))
+                    percent_masked = torch.mean(accelerator.gather_for_metrics(percent_masked))
                 
                 else:
-                    loss = outputs.loss / num_losses
-                    contrastive_loss = outputs.contrastive_loss / num_losses
-                    diversity_loss = outputs.diversity_loss / num_losses
-                    perplexity = outputs.codevector_perplexity / num_losses
-                    hours_per_batch = accumulated_hours_per_batch
-                    percent_masked = accumulated_percent_masked
+                    loss = loss / num_losses
+                    contrastive_loss = contrastive_loss / num_losses
+                    diversity_loss = diversity_loss / num_losses
+                    perplexity = perplexity / num_losses
+                    hours_per_batch = hours_per_batch
+                    percent_masked = percent_masked
 
                 log = {"train_loss": loss,
                        "train_contrast_loss": contrastive_loss,
@@ -771,11 +789,12 @@ while train:
                 for k, v in log.items():
                     logging_string += f"|{k[6:] if 'train_' in k else k}: {round(v.item() if torch.is_tensor(v) else v, 3)}"
                 
-                if accelerator.is_main_process and (completed_steps % args.print_to_console_freq == 0):
+                if accelerator.is_main_process:
                     progress_bar.write(logging_string)
                 
-                accelerator.log(log, step=completed_steps)
-            
+                if args.log_wandb:
+                    accelerator.log(log, step=completed_steps)
+
             ### Evaluation Loop ###
             if completed_steps % args.evaluation_interval == 0:
                 if accelerator.is_main_process:
@@ -803,16 +822,16 @@ while train:
                         output = model(**batch)
 
                     ### Grab Everything for Logging and Saving ###
-                    if accelerator.num_processes > 1:
-                        loss = accelerator.gather_for_metrics(output.loss).sum()
-                        contrastive_loss = accelerator.gather_for_metrics(output.contrastive_loss).sum()
-                        diversity_loss = accelerator.gather_for_metrics(output.diversity_loss).sum()
-                        num_losses = accelerator.gather_for_metrics(num_losses).sum()
 
-                    else:
-                        loss = output.loss
-                        contrastive_loss = output.contrastive_loss
-                        diversity_loss = output.diversity_loss
+                    loss = output.loss
+                    contrastive_loss = output.contrastive_loss
+                    diversity_loss = outputs.diversity_loss
+
+                    if accelerator.num_processes > 1:
+                        loss = torch.sum(accelerator.gather_for_metrics(loss))
+                        contrastive_loss = torch.sum(accelerator.gather_for_metrics(contrastive_loss))
+                        diversity_loss = torch.sum(accelerator.gather_for_metrics(diversity_loss))
+                        num_losses = torch.sum(accelerator.gather_for_metrics(num_losses))
 
                     log["val_loss"] += loss
                     log["val_contrast_loss"] += contrastive_loss
@@ -831,7 +850,8 @@ while train:
                 if accelerator.is_main_process:
                     progress_bar.write(logging_string)
                 
-                accelerator.log(log, step=completed_steps)
+                if args.log_wandb:
+                    accelerator.log(log, step=completed_steps)
 
                 ### Return Back to Training Mode ###
                 model.train()
