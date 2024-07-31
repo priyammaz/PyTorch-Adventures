@@ -1,4 +1,4 @@
-# Wav2Vec2: Self-Supervised Quanitzed Audio Pre-Training
+# Wav2Vec2: Self-Supervised Quantized Audio Pre-Training
 
 Wav2Vec was an extremely important speech pretraining architecture introduced in 2019. At a high level, how this architecture worked was to use some convolutional layers to first encode an audio waveform into a  sequence of feature vectors $z_{t}$. The transformer is then trained via contrastive learning, to distinguish a feature vector k steps in the future $z_{i+k}$ (k is set to 12 in the implementation) from 10 other uniformly selected distractor feature vectors from the same audio sequence (as stated in the paper, sampling from different sequences seems to hurt performance). 
 
