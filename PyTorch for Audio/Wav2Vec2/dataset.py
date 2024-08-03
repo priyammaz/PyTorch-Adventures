@@ -1,11 +1,12 @@
 import os
 import numpy as np
 import pandas as pd
-import librosa
 import torch
 import torchaudio
 from torch.utils.data import Dataset, DataLoader
-from tqdm import tqdm
+from transformers import Wav2Vec2CTCTokenizer
+from dataclasses import dataclass
+from transformers import Wav2Vec2Processor
 
 from utils import (
     compute_span_mask,
@@ -13,6 +14,7 @@ from utils import (
     compute_sub_attention_mask, 
     Wav2Vec2Config
 )
+
 
 class LibriSpeechDataset(Dataset):
 
@@ -35,7 +37,8 @@ class LibriSpeechDataset(Dataset):
                  sampling_rate=16000,
                  num_audio_channels=1, 
                  truncate_audio=True,
-                 return_transcripts=True):
+                 return_transcripts=True,
+                 hf_model_name="facebook/wav2vec2-base"):
         
         if isinstance(include_splits, str):
             include_splits = [include_splits]
@@ -84,6 +87,8 @@ class LibriSpeechDataset(Dataset):
                         if (duration >= min_audio_duration) and (duration <= max_audio_duration or truncate_audio):
                             self.librispeech_data.append((full_path_to_audio_file, transcript))
                         
+        if return_transcripts:
+            self.tokenizer = Wav2Vec2CTCTokenizer.from_pretrained(hf_model_name)
 
     def __len__(self):
         return len(self.librispeech_data)
@@ -108,18 +113,29 @@ class LibriSpeechDataset(Dataset):
         normed_audio = ((audio - audio.mean()) / np.sqrt(audio.var() + 1e-7))
 
         if self.return_transcripts:
-            return normed_audio, transcript
-    
+            tokenized_transcript = torch.tensor(self.tokenizer.encode(transcript))
+            batch = {"input_values": normed_audio, 
+                     "labels": tokenized_transcript}
         else:
-            return normed_audio
+            batch = {"input_values": normed_audio}
+
+        return batch
 
 def Wav2Vec2CollateFunctionForPreTraining(config):
 
     """
     Just a simple wrapper on a collate function so I can pass config information
     """
-    def collate_fn(batch_audios):
+    def collate_fn(batch):
+
+        """
+        This collate function is basically the heart of our implementation! It includes everything we need for training
+        such as attention masks, sub_attention_masks, span_masks and our sampled negatives!
+        """
         
+        ### Grab Audios from our Batch Dictionary ###
+        batch_audios = [sample["input_values"] for sample in batch]
+
         ### Pad Audios to the Longest Audio and Create Attention Mask ###
         attention_mask = [torch.ones(len(audio)) for audio in batch_audios]
         audios = torch.nn.utils.rnn.pad_sequence(batch_audios, batch_first=True, padding_value=0.0)
@@ -153,18 +169,61 @@ def Wav2Vec2CollateFunctionForPreTraining(config):
 
     return collate_fn
 
+@dataclass
+class Wav2Vec2CollateFunctionForCTC:
+    """
+    This collate function was taken directly from the 🤗 Huggingface Wav2Vec2 Finetuning example!!!
+    https://huggingface.co/blog/fine-tune-wav2vec2-english
+
+    """
+
+    processor: Wav2Vec2Processor
+
+    def __call__(self, features):
+  
+        ### Create a list of dictionaries containing our audio and label_ids ###
+        input_features = [{"input_values": feature["input_values"]} for feature in features]
+        label_features = [{"input_ids": feature["labels"]} for feature in features]
+
+        ### Pads audio with zeros to complete the batch ###
+        ### When we define the wav2vec2processor that we pass in, we will not include any attention mask on the audio ###
+        ### Theres really no need in finetuning, but to do this correctly we will group by audio lenghts in the trainer so we dont have ###
+        ### too much extra padding being added on ###
+        batch = self.processor.pad(
+            input_features,
+            padding=True,
+            max_length=None,
+            pad_to_multiple_of=None,
+            return_tensors="pt",
+        )
+
+        ### When used under the `as_target_processor()` context, it uses the tokenizer by default ###
+        ### You can get more information here: https://huggingface.co/docs/transformers/en/model_doc/wav2vec2#transformers.Wav2Vec2Processor ###
+        with self.processor.as_target_processor():
+            labels_batch = self.processor.pad(
+                label_features,
+                padding=True,
+                max_length=None,
+                pad_to_multiple_of=None,
+                return_tensors="pt",
+            )
+
+        ### When using the target processor, it will also return an attention mask! Use it to fill -100 into labels so we ignore them ###
+        labels = labels_batch["input_ids"].masked_fill(labels_batch.attention_mask.ne(1), -100)
+
+        batch["labels"] = labels
+
+        return batch
 
 if __name__ == "__main__":
+
     path_to_data = "/mnt/datadrive/data/LibriSpeech/"
-
-    ### Pre Compute Audio Durations ###
-    # precompute_audio_durations(path_to_data)
-
-    ### Define Dataset ###    
-    dataset = LibriSpeechDataset(path_to_data, include_splits=["dev-clean", "test-clean"], return_transcripts=False, max_audio_duration=20)
     config = Wav2Vec2Config()
+
+    ### Test Pretraining Loader ###    
+    dataset = LibriSpeechDataset(path_to_data, include_splits=["dev-clean", "test-clean"], return_transcripts=False, max_audio_duration=20)
+    
     loader = DataLoader(dataset, batch_size=4, collate_fn=Wav2Vec2CollateFunctionForPreTraining(config), num_workers=0)
-    for data in tqdm(loader):
-        print(data["input_values"])
+    for data in loader:
+        print(data)
         break
-        

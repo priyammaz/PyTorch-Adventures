@@ -35,7 +35,7 @@ def parse_args():
         "--path_to_data_root", 
         help="Path to data root directory",
         required=True,
-
+        type=str
     )
 
     parser.add_argument(

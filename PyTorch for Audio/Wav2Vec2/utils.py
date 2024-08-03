@@ -1,6 +1,7 @@
 import math
 import numpy as np
-from dataclasses import dataclass
+from dataclasses import dataclass, asdict
+from typing import Literal
 from typing import Optional, Tuple, Union
 import torch 
 import torch.nn as nn
@@ -14,7 +15,6 @@ class Wav2Vec2ForPreTrainingOutput:
     codevector_perplexity: torch.FloatTensor = None
     contrastive_loss: Optional[torch.FloatTensor] = None
     diversity_loss: Optional[torch.FloatTensor] = None
-
 
 @dataclass
 class Wav2Vec2Config:
@@ -63,6 +63,22 @@ class Wav2Vec2Config:
     ### LayerNorm Config ###
     layer_norm_eps: float = 1e-5
     
+    ### CTC Config ###
+    asr_head_dropout_p: float = 0.1
+    blank_token_idx: int = 0
+    vocab_size: int = 32
+
+    ### Huggingface Interface Config ###
+    hf_model_name: str = "facebook/wav2vec2-base"
+
+    ### Pretrain Backbone Config ###
+    path_to_pretrained_weights: str = None
+
+    ### Backbone Config ###
+    pretrained_backbone: Literal["pretrained", "pretrained_huggingface", "random"] = "pretrained"
+
+    def to_dict(self):
+        return asdict(self)
 
 def compute_encoded_lengths(lengths, conv_kernels, conv_strides):
     """

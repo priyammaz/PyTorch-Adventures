@@ -1,7 +1,18 @@
+"""
+Our Wav2Vec2 Model was heavily inspired by modeling_wav2vec2.py from 🤗 Huggingface!
+
+https://github.com/huggingface/transformers/blob/main/src/transformers/models/wav2vec2/modeling_wav2vec2.py
+
+This implementation is just an as simplified and overly annotated version as possible for learning purposes!
+
+"""
+import os
 import math
 import torch
 from torch import nn
 import torch.nn.functional as F
+from transformers import Wav2Vec2Model as HFWav2Vec2Model
+from safetensors.torch import load_file
 from utils import (
     Wav2Vec2ForPreTrainingOutput,
     compute_sub_attention_mask,
@@ -732,6 +743,149 @@ class Wav2Vec2ForPreTraining(nn.Module):
             diversity_loss=diversity_loss,
         )
 
+
+class Wav2Vec2ForCTC(nn.Module):
+
+    """
+    The toughest part for Automatic Speech Recognition is learning the alignment between 
+    two arbritarily long sequences: The raw audio and the characters in the sentence. CTCLoss
+    is one such method that learns this alignment so we can actually do ASR. 
+
+    This model can be initialized with our own pretrained backbone, but if you dont have a ton of
+    GPU resources or time, you can use the Huggingface backbone as well!
+    """
+
+    def __init__(self, config):
+        super().__init__()
+        
+        self.config = config
+
+        ### Grab Backbone Based on Config ###
+        self.load_backbone()
+
+        ### Initialize Prediction Head ###
+        self.dropout = nn.Dropout(config.asr_head_dropout_p)
+        self.lm_head = nn.Linear(config.embedding_dimension, config.vocab_size)
+
+    def load_backbone(self):
+        
+        if self.config.pretrained_backbone == "pretrained_huggingface":
+            print(f"Loading Huggingface Wav2Vec2 Backbone: {self.config.hf_model_name}")
+            self.wav2vec2 = HFWav2Vec2Model.from_pretrained(self.config.hf_model_name)
+        else:
+            self.wav2vec2 = Wav2Vec2Model(self.config)
+
+            if self.config.pretrained_backbone == "pretrained":
+                if self.config.path_to_pretrained_weights is None:
+                    raise Exception("Provide the argument `path_to_pretrained_weights` in the config, else we cant load them!")
+                else:
+                    
+                    if not os.path.isfile(self.config.path_to_pretrained_weights):
+                        raise Exception(f"Provided path to safetensors weights {self.config.path_to_pretrained_weights} is invalid!")
+
+                    print(f"Loading Wav2Vec2Model Backbone from {self.config.path_to_pretrained_weights}")
+
+                    ### Load Weights with load_file from safetensors ###
+                    state_dict = load_file(self.config.path_to_pretrained_weights)
+
+                    ### Cleanup of Weights and keys ###
+                    backbone_keys = {}
+                    for key in state_dict.keys():
+
+                        ### If Wav2Vec2 is in key name, just remove from the key name ###
+                        if "wav2vec2" in key:
+                            new_key = key.replace("wav2vec2.", "")
+                            backbone_keys[new_key] = state_dict[key]
+
+                        ### If wav2vec2 is not in key name, it isnt a part of the backbone so ignore it ###
+                        else:
+                            continue
+
+                    ### Load State Dict to Backbone ###
+                    self.wav2vec2.load_state_dict(backbone_keys)
+
+    def freeze_feature_extractor(self):
+        """
+        Calling this function will disable the gradient computation for the feature encoder so that its parameter will
+        not be updated during training.
+        """
+        print("Freezing Convolutional Feature Encoder")
+        if self.config.pretrained_backbone == "pretrained_huggingface":
+            ### Huggingface already has a method to freeze model parameters ###
+            self.wav2vec2.feature_extractor._freeze_parameters()
+        elif self.config.pretrained_backbone == "pretrained":
+            for param in self.wav2vec2.feature_extractor.parameters():
+                param.requires_grad = False
+        elif self.config.pretrained_backbone == "random":
+            raise Exception("Feature Encoder is Randomly initialized!!! You are disabling gradients, you need to train them!")
+        else:
+            raise ValueError(f"Inputed pretrained_backbone {self.config.pretrained_backbone} not in (pretrained, pretrained_huggingface, random)")
+        
+    def forward(
+        self,
+        input_values,
+        attention_mask = None,
+        labels = None):
+
+        ### Our Pretrained model and Huggingface Wav2Vec2Model have slightly different forwards and returns ###
+        if self.config.pretrained_backbone == "pretrained_huggingface":
+            outputs = self.wav2vec2(
+                input_values,
+                attention_mask=attention_mask,
+            )
+
+            hidden_states = outputs.last_hidden_state
+        
+        else:
+
+            hidden_states = self.wav2vec2(input_values, 
+                                          attention_mask, 
+                                          return_features_to_quantize=False)
+
+        ### Pass through Dropout and Compute Logits ### 
+        hidden_states = self.dropout(hidden_states)
+        logits = self.lm_head(hidden_states)
+
+        ### If labels are provided (already tokenized) we can compute our CTC Loss as well ###
+        loss = None
+        if labels is not None:
+
+            ### If our Attention Mask is None, then attend to all tokens ###
+            if attention_mask is None:
+                attention_mask = torch.ones_like(input_values, dtype=torch.long)
+
+            ### Compute Input Sizes of feature extracted audio via sub_attention_mask ###
+            input_lengths = self.wav2vec2._get_feat_extract_output_lengths(attention_mask.sum(-1)).to(torch.long)
+
+            ### Labels are -100 for padding tokens (as per our collate function), no need to keep for loss ###
+            labels_mask = (labels >= 0)
+
+            ### Add up nonpad tokens to see the number of tokens per sequence in batch for target sizes ###
+            target_lengths = labels_mask.sum(-1)
+
+            ### Grab nonpadded labels (CTC Loss can take flatten vector of (unpadded) inputs of shape (sum(target_lengths)) ###
+            flattened_targets = labels.masked_select(labels_mask)
+
+            ### CTC Loss takes log probs and doesnt work in mixed precision, make sure its float32 ###
+            log_probs = nn.functional.log_softmax(logits, dim=-1, dtype=torch.float32)
+
+            ### CTC Loss expects (Sequence x Batch x Vocab Size) but we have (Batch x Sequence x Vocab size) ###
+            log_probs = log_probs.transpose(0, 1)
+
+            with torch.backends.cudnn.flags(enabled=False):
+                loss = nn.functional.ctc_loss(
+                    log_probs,
+                    flattened_targets,
+                    input_lengths,
+                    target_lengths,
+                    blank=0,
+                    reduction="mean",
+                    zero_infinity=False,
+                )
+
+        return loss, logits
+
+    
 ############################
 ### Weight Init Strategy ###
 ############################
