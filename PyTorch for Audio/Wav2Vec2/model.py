@@ -16,6 +16,7 @@ from safetensors.torch import load_file
 from utils import (
     Wav2Vec2ForPreTrainingOutput,
     compute_sub_attention_mask,
+    compute_encoded_lengths
 )
 
 class Wav2Vec2LayerNormConvLayer(nn.Module):
@@ -855,7 +856,7 @@ class Wav2Vec2ForCTC(nn.Module):
                 attention_mask = torch.ones_like(input_values, dtype=torch.long)
 
             ### Compute Input Sizes of feature extracted audio via sub_attention_mask ###
-            input_lengths = self.wav2vec2._get_feat_extract_output_lengths(attention_mask.sum(-1)).to(torch.long)
+            input_lengths = compute_encoded_lengths(attention_mask.sum(-1), self.config.conv_kernel, self.config.conv_stride).to(torch.long)
 
             ### Labels are -100 for padding tokens (as per our collate function), no need to keep for loss ###
             labels_mask = (labels >= 0)
