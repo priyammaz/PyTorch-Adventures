@@ -77,6 +77,7 @@ class Wav2Vec2Config:
     ### Backbone Config ###
     pretrained_backbone: Literal["pretrained", "pretrained_huggingface", "random"] = "pretrained"
 
+    ### Added in to_dict() method so this Config is compatible with Huggingface Trainer!!! ###
     def to_dict(self):
         return asdict(self)
 

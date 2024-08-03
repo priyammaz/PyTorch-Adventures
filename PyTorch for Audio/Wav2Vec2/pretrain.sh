@@ -1,5 +1,5 @@
 accelerate launch pretrain_wav2vec2.py \
-    --experiment_name "TESTING" \
+    --experiment_name "Pretraing_Wav2Vec2Base" \
     --working_directory "work_dir" \
     --path_to_data_root "/mnt/datadrive/data/LibriSpeech" \
     --train_splits train-clean-100 train-clean-360 train-other-500 \
