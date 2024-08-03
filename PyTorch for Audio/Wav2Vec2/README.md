@@ -14,7 +14,8 @@ Wav2Vec 2.0 basically takes this idea from before but makes a few importance cha
 ## Shoutouts
 
 - [🤗 Huggingface Transformers](https://huggingface.co/) The code was largely based off of their ```modeling_wav2vec2.py```, this was basically a dumbed down and simplified version of the work they did!
-- [patrickvonplaten](https://github.com/patrickvonplaten) The training script was largely inspired by the ```run_wav2vec2_pretraining_no_trainer.py```
+- [patrickvonplaten](https://github.com/patrickvonplaten) The pre-training script was largely inspired by the ```run_wav2vec2_pretraining_no_trainer.py``` and the fine-tuning script was mostly taken from the tutorial on [Fine-Tuning Wav2Vec2 for English ASR](https://huggingface.co/blog/fine-tune-wav2vec2-english)
+  
 - [Awni Hannun](https://awnihannun.com/) for their really great explanation of how [CTC Loss](https://distill.pub/2017/ctc/) works! Although I was just using the PyTorch CTC Loss, it was helpful to understand anyway!
 
 ## Preparing Data ###
@@ -89,3 +90,72 @@ accelerate launch train.py --experiment_name "Wav2Vec2_Pretraining" \
                            --seed 0 \
                            --resume_from_checkpoint "checkpoint_{step}"
 ```
+
+I trained this model on a 4xA100 Node for about 96 hours (roughly 100K iterations) and produced the following logs for these [training results](https://api.wandb.ai/links/exploratorydataadventure/mjp28axy)
+
+## Fine-Tuning Wav2Vec2 Model ###
+Now for the exciting part! We finally have a model that *understands* speech via the pre-training task. Now we need to put that knowledge to good use and fine-tune to do our Automatic Speech Recognition (ASR) task. To do this, we will be using the CTC Loss for which this [distill.pub](https://distill.pub/2017/ctc/) article by Awni Hannun is pretty incredible to understand it. This ```Wav2Vec2ForCTC``` module will utilze the same ```Wav2Vec2Model``` backbone, along with an ASR decoder head for the character prediction task. Due to this, we actually have some options:
+- If you dont have a ton of GPUs for pretraining, you can initialize the backbone with a [pretrained backbone](https://huggingface.co/facebook/wav2vec2-base) from Huggingface.
+
+```bash
+CUDA_VISIBLE_DEVICES=0 python finetune_wav2vec2.py \
+        --experiment_name "finetune_huggingface_backbone" \
+        --working_directory "<PATH_TO_WORK_DIR>" \
+        --path_to_dataset_root "<PATH_TO_DATA_ROOT>" \
+        --num_train_epochs 30 \
+        --save_steps 250 \
+        --eval_steps 250 \
+        --logging_steps 5 \
+        --warmup_steps 1000 \
+        --train_splits train-clean-100 \
+        --test_splits dev-clean \
+        --per_device_batch_size 64 \
+        --gradient_accumulation_steps 1 \
+        --learning_rate 1e-4 \
+        --weight_decay 5e-3 \
+        --save_total_limit 2 \
+        --huggingface_model_name "facebook/wav2vec2-base" \
+        --pretrained_backbone "pretrained_huggingface" \
+        --freeze_feature_extractor \
+        --group_by_length
+
+```
+- If you have a ton of GPUs and were able to do the pretraining task on your own, you can initialize the backbone with your *model.safetensors* that the pretraining script automatically generates for every checkpoint
+  
+```bash
+CUDA_VISIBLE_DEVICES=0 python finetune_wav2vec2.py \
+        --experiment_name "finetune_my_backbone" \
+        --working_directory "<PATH_TO_WORK_DIR>" \
+        --path_to_dataset_root "<PATH_TO_DATA_ROOT>" \
+        --num_train_epochs 30 \
+        --save_steps 250 \
+        --eval_steps 250 \
+        --logging_steps 5 \
+        --warmup_steps 1000 \
+        --train_splits train-clean-100 \
+        --test_splits dev-clean \
+        --per_device_batch_size 64 \
+        --gradient_accumulation_steps 1 \
+        --learning_rate 1e-4 \
+        --weight_decay 5e-3 \
+        --save_total_limit 2 \
+        --pretrained_backbone "pretrained" \
+        --path_to_pretrained_backbone "<PATH_TO_MODEL.SAFETENSORS>" \
+        --freeze_feature_extractor \
+        --group_by_length
+```
+- Not recommended, but you can also initialize randomly and train the whole model from scratch on only the ASR Task (you can fine the submit script in ```finetune.sh```)
+
+Training will be done via the Huggingface Trainer API for convenience and because that was what the [example](https://huggingface.co/blog/fine-tune-wav2vec2-english) used as well for training. I also train on the ```train-clean-100``` portion of the LibriSpeech corpus, although significantly less data could have been used instead! Again, this is just for learning, if you neeed to train your own just use Huggingface or Fairseq!
+
+
+**Caveat**: I did have some issues with multigpu support using the Trainer. This is probably related to my model not being an official Huggingface model that inherits the ```transformers.PreTrainedModel``` but thats ok, we only really need a single GPU for finetuning anyway! This is why the finetuning scripts are prepended with ```CUDA_VISIBLE_DEVICES=0``` to avoid access to any other resources. 
+
+### Wrap-Up
+
+This was probably my most extensive implementation yet! Wav2Vec2 is a pretty complicated architecture with a lot going on, especially all the training utilities, but hopefully this gives you a better idea under the hood of what is exactly happening!
+
+
+
+
+

@@ -5,7 +5,7 @@ https://huggingface.co/blog/fine-tune-wav2vec2-english
 """
 
 import os
-os.environ["WANDB_PROJECT"] = "Finetune_Wav2Vev2_Librispeech"
+os.environ["WANDB_PROJECT"] = "Wav2Vec2_LibriSpeech100_Finetune"
 
 import numpy as np
 import torch
@@ -220,7 +220,11 @@ config = Wav2Vec2Config(hf_model_name=args.huggingface_model_name,
                         vocab_size=tokenizer.vocab_size,
                         asr_head_dropout_p=args.asr_head_dropout_p,
                         path_to_pretrained_weights=args.path_to_pretrained_backbone,
-                        pretrained_backbone=args.pretrained_backbone)
+                        pretrained_backbone=args.pretrained_backbone,
+                        mlp_dropout_p=0.1, 
+                        attention_dropout_p=0.1,
+                        transformer_encoder_dropout=0.1, 
+                        )
 
 ### Load Model ###
 model = Wav2Vec2ForCTC(config)
@@ -267,6 +271,7 @@ training_args = TrainingArguments(
   weight_decay=args.weight_decay,
   warmup_steps=args.warmup_steps,
   save_total_limit=args.save_total_limit,
+  run_name=args.experiment_name
 )
 
 ### Load Training and Testing Datasets ###
