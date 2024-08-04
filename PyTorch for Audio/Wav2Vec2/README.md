@@ -146,10 +146,22 @@ CUDA_VISIBLE_DEVICES=0 python finetune_wav2vec2.py \
 ```
 - Not recommended, but you can also initialize randomly and train the whole model from scratch on only the ASR Task (you can fine the submit script in ```finetune.sh```)
 
-Training will be done via the Huggingface Trainer API for convenience and because that was what the [example](https://huggingface.co/blog/fine-tune-wav2vec2-english) used as well for training. I also train on the ```train-clean-100``` portion of the LibriSpeech corpus, although significantly less data could have been used instead! Again, this is just for learning, if you neeed to train your own just use Huggingface or Fairseq!
-
+Training will be done via the Huggingface Trainer API for convenience and because that was what the [example](https://huggingface.co/blog/fine-tune-wav2vec2-english) used as well for training. I also train on the ```train-clean-100``` portion of the LibriSpeech corpus, although significantly less data could have been used instead! For tokenization of text, I just make use of the ```Wav2Vec2CTCTokenizer``` as it conveniently encodes and decodes the text for me and already includes all the special tokens I need! Again, this is just for learning, if you neeed to train your own just use Huggingface or Fairseq!
 
 **Caveat**: I did have some issues with multigpu support using the Trainer. This is probably related to my model not being an official Huggingface model that inherits the ```transformers.PreTrainedModel``` but thats ok, we only really need a single GPU for finetuning anyway! This is why the finetuning scripts are prepended with ```CUDA_VISIBLE_DEVICES=0``` to avoid access to any other resources. 
+
+### Results
+
+You can find the results of all my finetuning [here](https://api.wandb.ai/links/exploratorydataadventure/wbp9b6rt)! At a high level the word error rates (WER) from finetuning were:
+
+| Model Backbone | WER |
+| -------- | ------- |
+| Facebook Pretrained Weights | 6.5% |
+| My Pretrained Weights | 15.5% |
+| Randomly Initialized | 69.5% |
+
+So obviously the Wav2Vec2-Base trained by facebook was done for longer with more resources, so its hard to match it, but we did pretty well! 15.5% WER is not the best, but definitely a useable ASR system. We also know that our pre-training for about 100K steps learned something meaningful about speech, as random initialization of our model gives us a completely unusable 69.5% WER. 
+
 
 ### Wrap-Up
 
