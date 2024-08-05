@@ -1,4 +1,4 @@
-# Huggingface Accelerate 
+# 🤗 Huggingface Accelerate 
 
 To train larger models efficiently, we need to be able to utilize multiple GPUs at a time. I used to use regular PyTorch DDP, but these days I basically just use Huggingface Accelerate just due to the convenience. We will be looking at an example of training ResNet50 on the ImageNet dataset, following as close as I can the [training recipie](https://github.com/pytorch/vision/tree/main/references/classification#resnet) provided by PyTorch. What we will learn here is:
 
