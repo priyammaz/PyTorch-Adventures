@@ -1,4 +1,4 @@
-# ### Train with a Huggingface Backbone ###
+### Train with a Huggingface Backbone ###
 CUDA_VISIBLE_DEVICES=0 python finetune_wav2vec2.py \
         --experiment_name "finetune_huggingface_backbone" \
         --working_directory "work_dir" \
@@ -38,7 +38,7 @@ CUDA_VISIBLE_DEVICES=0 python finetune_wav2vec2.py \
         --weight_decay 5e-3 \
         --save_total_limit 2 \
         --pretrained_backbone "pretrained" \
-        --path_to_pretrained_backbone "work_dir/Pretraing_Wav2Vec2Base/checkpoint_88000/model.safetensors" \
+        --path_to_pretrained_backbone "work_dir/Pretraing_Wav2Vec2Base/checkpoint_100000/model.safetensors" \
         --freeze_feature_extractor \
         --group_by_length
 
