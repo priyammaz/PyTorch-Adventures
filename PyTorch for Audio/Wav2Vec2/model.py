@@ -3,7 +3,9 @@ Our Wav2Vec2 Model was heavily inspired by modeling_wav2vec2.py from 🤗 Huggin
 
 https://github.com/huggingface/transformers/blob/main/src/transformers/models/wav2vec2/modeling_wav2vec2.py
 
-This implementation is just an as simplified and overly annotated version as possible for learning purposes!
+This implementation is simplified and overly annotated mainly for learning purposes. There were some differences
+in the pretrained model offered from Huggingface and the Wav2Vec2 paper, so I tried to keep it as close to the paper 
+as possible!
 
 """
 import os

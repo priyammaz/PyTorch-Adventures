@@ -537,33 +537,6 @@ if args.log_wandb:
 ### Prepare Config File ###
 config = Wav2Vec2Config(
 
-    conv_dim=tuple(args.conv_dim), 
-    conv_stride=tuple(args.conv_stride),
-    conv_kernel=tuple(args.conv_kernel),
-    conv_bias=not args.disable_conv_bias, 
-    feature_projection_dropout_p=args.feature_proj_dropout_p,
-    conv_positional_emb_drop_p=args.conv_positional_emb_drop_p, 
-    conv_positional_emb_groups=args.conv_positional_emb_groups,
-    conv_positional_emb_kernel_size=args.conv_positional_emb_kernel_size,
-    num_transformer_layers=args.num_transformer_layers,
-    num_attention_heads=args.num_attention_heads,
-    mlp_ratio=args.mlp_ratio,
-    mlp_dropout_p=args.mlp_dropout_p, 
-    attention_dropout_p=args.attention_dropout_p,
-    transformer_encoder_dropout=args.transformer_encoder_dropout_p,
-    layer_dropout=args.layer_dropout if accelerator.num_processes == 1 else 0.0, # Not really sure how to do layerdrop on multiple GPUs
-    initializer_range=args.initializer_range,
-    num_codevector_groups=args.num_codevector_groups,
-    num_codevectors_per_group=args.num_codevectors_per_group,
-    codevector_dim=args.codevector_dim, 
-    pre_quantizer_dropout=args.pre_quantizer_dropout_p, 
-    masking_probability=args.masking_probability, 
-    masking_span_length=args.masking_span_length, 
-    minimum_spans=args.minimum_spans, 
-    contrastive_logits_temperature=args.contrastive_logits_temperature, 
-    diversity_loss_weight=args.diversity_loss_weight,
-    num_negatives=args.num_negatives
-
 )
 
 
