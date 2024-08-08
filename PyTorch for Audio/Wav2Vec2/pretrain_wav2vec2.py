@@ -642,8 +642,8 @@ else:
 scheduler = get_scheduler(
     name=args.lr_scheduler_type,
     optimizer=optimizer,
-    num_warmup_steps=args.num_warmup_steps*accelerator.num_processes,
-    num_training_steps=args.num_training_steps*accelerator.num_processes,
+    num_warmup_steps=args.num_warmup_steps,
+    num_training_steps=args.num_training_steps,
 )
 
 ### PREPARE EVERYTHING ###
