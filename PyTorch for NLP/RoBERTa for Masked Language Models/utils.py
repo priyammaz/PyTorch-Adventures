@@ -45,6 +45,20 @@ def random_masking_text(tokens,
                         special_ids=(0,1,2,3,50264),
                         mask_ratio=0.15, 
                         mask_token=50264):
+    
+    """
+    Function for our random masking of tokens (excluding special tokens). This follow the logic provided 
+    by BERT/RoBERTa:
+
+        - Select 15% of the tokens for masking
+            - 80% of the selected tokens are replaced with a mask token
+            - 10% of the selected tokens are replaced with another random token
+            - 10% of the selected tokens are left alone
+
+    This is almost identical to the masking function in our introductory jupyter notebook walkthrough of 
+    masked language modeling, but some minor changes are made to apply masking to batches of tokens
+    rather than just one sequence at a time!
+    """
 
     ### Create Random Uniform Sample Tensor ###
     random_masking = torch.rand(*tokens.shape)
@@ -91,6 +105,11 @@ def random_masking_text(tokens,
 
 def RobertaMaskedLMCollateFunction(config):
 
+    """
+    Simply collation function that grabs batches of samples, pads them, and then random masks them for the 
+    Masked Language Modeling task!
+    """
+
     tokenizer = RobertaTokenizerFast.from_pretrained(config.hf_model_name)
 
     def collate_fn(batch):
@@ -132,7 +151,7 @@ def ExtractiveQAPreProcessing(config):
     def char2token_mapping(examples):
 
         """
-        Taken basically from the Huggingface Q&A Example provided here:
+        Taken basically from the 🤗 Huggingface Q&A Example provided here:
         https://huggingface.co/docs/transformers/en/tasks/question_answering. 
         
         I just made some changes (that probably hurt efficiency) just so the 

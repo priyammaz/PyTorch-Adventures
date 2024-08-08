@@ -1,3 +1,11 @@
+"""
+This data preparation was inspired mainly by the Masked Langauge Modeling tutorial provided by 🤗 Huggingface!!
+
+To make our life easier, we will pre-tokenize our dataset and then save it, so we can just load it
+for training! The datasets we will be using are Wikipedia and BookCorpus (although you can easily add more)
+and we will tokenize, split, and then group into the context length size we want. 
+"""
+
 from transformers import RobertaTokenizerFast
 from datasets import load_dataset, concatenate_datasets, load_from_disk
 import time
@@ -56,6 +64,11 @@ parser.add_argument(
 )
 
 def prepare_data(args):
+
+    """
+    Simple data prep function that will load our datasets, concatenate them together, 
+    and then tokenize/group them and save to disk. 
+    """
 
     context_length = args.context_length
     path_to_save = args.path_to_data_store

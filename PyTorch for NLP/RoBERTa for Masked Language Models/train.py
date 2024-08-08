@@ -1,3 +1,8 @@
+"""
+Pretty straightforward Masked Language Modeling pretraining script! This will require a ton of data 
+and a couple GPUs though to do in a reasonable amount of time, so if you dont have that, when we move onto 
+finetuning, you can just load a pretrained backbone from Huggingface instead!
+"""
 import os
 import shutil
 import numpy as np

@@ -1,3 +1,8 @@
+"""
+Quick function to compute our Squad score for the validation set of the Squad dataset! Probably could be better
+as I compute everything here sample by sample instead of batches, but its good enough for learning!
+"""
+
 from datasets import load_dataset
 from torchmetrics.text import SQuAD
 from inference import InferenceModel

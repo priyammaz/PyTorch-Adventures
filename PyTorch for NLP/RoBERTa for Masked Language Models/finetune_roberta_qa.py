@@ -1,3 +1,9 @@
+"""
+Finetuning script that is very close to the example provided by 🤗 Huggingface!!!
+https://huggingface.co/docs/transformers/en/tasks/question_answering
+
+"""
+
 import os
 os.environ["WANDB_PROJECT"] = "RoBERTa_QA_Finetune"
 

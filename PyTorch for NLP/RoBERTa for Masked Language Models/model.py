@@ -1,3 +1,11 @@
+"""
+Implementation of RoBERTa! This is as close as possible (but much more simplified) 
+version of the RoBERTa implementation from 🤗 Huggingface!
+
+https://github.com/huggingface/transformers/blob/main/src/transformers/models/roberta/modeling_roberta.py
+
+
+"""
 import os
 import torch
 import torch.nn as nn
@@ -181,6 +189,10 @@ class RobertaEncoder(nn.Module):
 
 class RobertaMLMHead(nn.Module):
 
+    """
+    The Masked Language model head is a stack of two linear layers with an activation in between!
+    """
+
     def __init__(self, config):
         super(RobertaMLMHead, self).__init__()
 
@@ -208,6 +220,10 @@ class RobertaMLMHead(nn.Module):
 
 class RobertaModel(nn.Module):
 
+    """
+    Backbone of our model, has to be pretrained via MLM on a ton of data!
+    """
+
     def __init__(self, config):
         super(RobertaModel, self).__init__()
 
@@ -226,6 +242,10 @@ class RobertaModel(nn.Module):
         return output
 
 class RobertaForMaskedLM(nn.Module):
+
+    """
+    This model will perform the masked language modeling task. 
+    """
 
     def __init__(self, config):
         super(RobertaForMaskedLM, self).__init__()
@@ -265,6 +285,13 @@ class RobertaForMaskedLM(nn.Module):
             return hidden_states, preds
         
 class RobertaForQuestionAnswering(nn.Module):
+
+    """
+    RoBERTa model for Extractive Question answering. The inputs to this are sequence of tokens
+    that are the question you want to ask and the context for the question the answer from. The
+    goal of this model is to predict the start and end token of context that includes the answer
+    to the question we have. 
+    """
 
     def __init__(self, config):
         super().__init__()
@@ -374,10 +401,12 @@ class RobertaForQuestionAnswering(nn.Module):
             return start_logits, end_logits
 
 
-        
-
-
 def _init_weights_(module):
+
+    """
+    Simple weight intialization taken directly from the huggingface
+    `modeling_roberta.py` implementation! 
+    """
     if isinstance(module, nn.Linear):
         module.weight.data.normal_(mean=0.0, std=0.02)
         if module.bias is not None:
