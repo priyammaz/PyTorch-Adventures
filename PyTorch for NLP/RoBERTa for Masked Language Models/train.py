@@ -17,7 +17,7 @@ from model import RobertaForMaskedLM
 
 def parse_args():
     ### PARSE COMMAND LINE ARGS ###
-    parser = argparse.ArgumentParser(description="Wav2Vec2 Pretraining Arguments on Librispeech")
+    parser = argparse.ArgumentParser(description="RoBERTa Pretraining Arguments on Wikipedia + BookCorpus")
     parser.add_argument(
         "--experiment_name", 
         required=True, 

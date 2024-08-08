@@ -1,6 +1,9 @@
+import os
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from safetensors.torch import load_file
+from transformers import RobertaModel as HFRobertaModel
 
 class RobertaEmbeddings(nn.Module):
     """
@@ -16,15 +19,11 @@ class RobertaEmbeddings(nn.Module):
         ### Positional Embeddings ###
         self.position_embeddings = nn.Embedding(config.context_length, config.embedding_dimension)
 
-        ### Token Type (Context vs Question for QA Finetuning in the Future) ###
-        if config.training_mode == "qa_finetuning":
-            self.token_type = nn.Embedding(2, config.embedding_dimension)
-
         ### Layernorm and Dropout ###
         self.layernorm = nn.LayerNorm(config.embedding_dimension, eps=config.layer_norm_eps)
         self.dropout = nn.Dropout(config.hidden_dropout_p)
 
-    def forward(self, input_ids, token_type_mask=None):
+    def forward(self, input_ids):
 
         batch_size, seq_length = input_ids.shape
 
@@ -35,11 +34,6 @@ class RobertaEmbeddings(nn.Module):
         avail_idx = torch.arange(0, seq_length, dtype=torch.long, device=input_ids.device)
         pos_embed = self.position_embeddings(avail_idx)
         x = x + pos_embed
-
-        ### Add Token Type Information if Available ###
-        if token_type_mask is not None:
-            token_type_embeddings = self.token_type(token_type_mask)
-            x = x + token_type_embeddings  
 
         x = self.layernorm(x)
         x = self.dropout(x)
@@ -224,9 +218,9 @@ class RobertaModel(nn.Module):
         self.encoder = RobertaEncoder(config)
         
 
-    def forward(self, input_ids, attention_mask=None, token_type_mask=None):
+    def forward(self, input_ids, attention_mask=None):
         
-        embeddings = self.embeddings(input_ids, token_type_mask)
+        embeddings = self.embeddings(input_ids)
         output = self.encoder(embeddings, attention_mask)
 
         return output
@@ -246,14 +240,12 @@ class RobertaForMaskedLM(nn.Module):
 
     def forward(self,
                 input_ids, 
-                token_type_mask=None, 
                 attention_mask=None, 
                 labels=None):
         
         ### Pass data through model ###
         hidden_states = self.roberta(input_ids,
-                                     attention_mask, 
-                                     token_type_mask)
+                                     attention_mask)
 
         preds = self.mlm_head(hidden_states)
 
@@ -271,6 +263,119 @@ class RobertaForMaskedLM(nn.Module):
         
         else:
             return hidden_states, preds
+        
+class RobertaForQuestionAnswering(nn.Module):
+
+    def __init__(self, config):
+        super().__init__()
+        
+        self.config = config
+
+        ### Grab Backbone Based on Config ###
+        self.load_backbone()
+
+        ### Initialize Prediction Head ###
+        self.qa_head = nn.Linear(config.embedding_dimension, 2)
+
+    def load_backbone(self):
+        
+        if self.config.pretrained_backbone == "pretrained_huggingface":
+            print(f"Loading Huggingface Roberta Backbone: {self.config.hf_model_name}")
+            self.roberta = HFRobertaModel.from_pretrained(self.config.hf_model_name)
+
+        else:
+            self.roberta = RobertaModel(self.config)
+
+            if self.config.pretrained_backbone == "pretrained":
+                if self.config.path_to_pretrained_weights is None:
+                    raise Exception("Provide the argument `path_to_pretrained_weights` in the config, else we cant load them!")
+                else:
+                    
+                    if not os.path.isfile(self.config.path_to_pretrained_weights):
+                        raise Exception(f"Provided path to safetensors weights {self.config.path_to_pretrained_weights} is invalid!")
+
+                    print(f"Loading RobertaModel Backbone from {self.config.path_to_pretrained_weights}")
+
+                    ### Load Weights with load_file from safetensors ###
+                    state_dict = load_file(self.config.path_to_pretrained_weights)
+
+                    ### Cleanup of Weights and keys ###
+                    backbone_keys = {}
+                    for key in state_dict.keys():
+
+                        ### If Wav2Vec2 is in key name, just remove from the key name ###
+                        if "roberta" in key:
+                            new_key = key.replace("roberta.", "")
+                            backbone_keys[new_key] = state_dict[key]
+
+                        ### If wav2vec2 is not in key name, it isnt a part of the backbone so ignore it ###
+                        else:
+                            continue
+
+                    ### Load State Dict to Backbone ###
+                    self.roberta.load_state_dict(backbone_keys)
+
+    def forward(self,
+                input_ids, 
+                attention_mask=None, 
+                start_positions=None, 
+                end_positions=None):
+
+        ### Different returns based on which backbone we are using ###
+        if self.config.pretrained_backbone == "pretrained_huggingface":
+            outputs = self.roberta(input_ids, attention_mask)
+
+            ### Outputs have shape (Batch x Seq Len x Embedding Dim)
+            outputs = outputs.last_hidden_state
+
+        ### Pass Outputs through QA Head, Shape (Batch x Seq Len x 2) ###
+        logits = self.qa_head(outputs)
+
+        ### Split Logits by last Dim and sequeeze to make (Batch x Seq Len) ###
+        start_logits, end_logits = logits.split(1, dim=-1)
+        start_logits = start_logits.squeeze(-1)
+        end_logits = end_logits.squeeze(-1)
+
+        ### If the True Start/End positions are provided we can compute loss ###
+        total_loss = None
+        if start_positions is not None and end_positions is not None:
+            
+            ### Make sure Stard and End positions are just vectors (Batch Size) ###
+            if len(start_positions.size()) > 1: 
+                start_positions = start_positions.squeeze(-1)
+            if len(end_positions.size()) > 1:
+                end_positions = end_positions.squeeze(-1)
+
+            ### Any labels with an index value larger than the total sequence length, should be ignored ###
+            ### In our case our max length is 512, which includes the question and the context. We need to ensure ###
+            ### that the answer is within the context portion of our 512 tokens. Therefore, if the start or end index is ###
+            ### beyond 512 tokens, then it isnt in the context and we ignore it. ###
+            ### In the `utils.ExtractiveQAPreProcessing` we already handled this so it doesnt matter all that much, I just want to ###
+            ### keep this as similar as possible to the Huggingface implementation ###
+
+            # Grab the sequence length as the max tokens we can use to predict the start and end ###
+            ignored_index = start_logits.size(1)
+            
+            # Clamp the labels to this, and then ignore these in the loss computation ###
+            start_positions = start_positions.clamp(0, ignored_index)
+            end_positions = end_positions.clamp(0, ignored_index)
+            
+            # Compute Loss on logits (Batch x Sequence) and target positions (Batch). Basically, we need to predict which of the 512 in the sequence
+            # is the start token and which is the end token
+            start_loss = F.cross_entropy(start_logits, start_positions, ignore_index=ignored_index)
+            end_loss = F.cross_entropy(end_logits, end_positions, ignore_index=ignored_index)
+
+            # Average up the losses 
+            total_loss = (start_loss + end_loss) / 2
+
+        if total_loss is not None:
+            return total_loss, start_logits, end_logits
+        else:
+            return start_logits, end_logits
+
+
+        
+
 
 def _init_weights_(module):
     if isinstance(module, nn.Linear):
