@@ -1,0 +1,14 @@
+accelerate launch train.py \
+    --experiment_name "ViT_Imagenet_Training" \
+    --working_directory "work_dir" \
+    --path_to_data "/mnt/datadrive/data/ImageNet" \
+    --num_classes 1000 \
+    --epochs 300 \
+    --warmup_epochs 30 \
+    --per_gpu_batch_size 256 \
+    --gradient_accumulation_steps 1 \
+    --learning_rate 0.003 \
+    --weight_decay 0.1 \
+    --label_smoothing 0.1 \
+    --img_size 224 \
+    --num_workers 24
