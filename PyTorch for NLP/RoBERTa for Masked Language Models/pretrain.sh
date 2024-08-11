@@ -1,5 +1,5 @@
 accelerate launch train.py \
-    --experiment_name "testing" \
+    --experiment_name "RoBERTa_Pretraining_Small" \
     --working_directory "work_dir" \
     --hf_model_name "FacebookAI/roberta-base" \
     --path_to_prepped_data "/mnt/datadrive/data/prepped_data/roberta_data" \
@@ -12,10 +12,11 @@ accelerate launch train.py \
     --num_attention_heads 12 \
     --embedding_dimension 768 \
     --mlp_ratio 4 \
+    --max_grad_norm 1.0 \
     --layer_norm_eps 1e-5 \
     --initializer_range 0.02 \
-    --per_gpu_batch_size 32 \
-    --gradient_accumulation_steps 1 \
+    --per_gpu_batch_size 480 \
+    --gradient_accumulation_steps 40 \
     --num_training_steps 300000 \
     --num_warmup_steps 20000 \
     --lr_scheduler linear \
@@ -27,7 +28,8 @@ accelerate launch train.py \
     --adam_beta1 0.9 \
     --adam_beta2 0.98 \
     --adam_epsilon 1e-6 \
-    --seed 42
+    --seed 42 \
+    --log_wandb
 
 
 

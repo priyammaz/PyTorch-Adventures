@@ -170,7 +170,7 @@ def parse_args():
     parser.add_argument(
         "--max_grad_norm",
         help="Max gradient norm used for stabilizing training with gradient clipping",
-        defautl=1.0, 
+        default=1.0, 
         type=float
     )
 
@@ -479,7 +479,7 @@ while train:
             ### Log Results!! ###
             if completed_steps % args.logging_steps == 0:
                 
-                accumulate_loss = accumulate_loss.detach() * args.gradient_accumulation_steps
+                accumulate_loss = accumulate_loss.detach()
                 accuracy = accuracy.detach()
             
                 if accelerator.state.num_processes > 1:
