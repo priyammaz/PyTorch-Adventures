@@ -309,8 +309,3 @@ class VisionTransformer(nn.Module):
         x = self.head(x)
 
         return x
-    
-if __name__ == "__main__":
-    model = VisionTransformer()
-    rand = torch.randn(4,3,224,224)
-    print(model(rand).shape)
