@@ -8,7 +8,7 @@ from torch import optim
 from torch.utils.data import DataLoader
 from torchvision import transforms
 from torchvision import datasets
-from model import ResNet50
+from torchvision.models import resnet50
 from accelerate import Accelerator
 from transformers import get_cosine_schedule_with_warmup
 from torchmetrics import Accuracy
@@ -32,10 +32,6 @@ parser.add_argument("--working_directory",
                     folder labeled by the experiment name", 
                     required=True, 
                     type=str)
-parser.add_argument("--num_classes",
-                    help="Number of output classes for Image Classification",
-                    default=1000,
-                    type=int)
 parser.add_argument("--epochs",
                     help="Number of Epochs to Train",
                     default=90, 
@@ -44,10 +40,14 @@ parser.add_argument("--save_checkpoint_interval",
                     help="After how many epochs to save model checkpoints",
                     default=10,
                     type=int)
+parser.add_argument("--num_classes", 
+                    help="How many classes is our network predicting?",
+                    default=1000,
+                    type=int)
 parser.add_argument("--batch_size", 
                     help="Effective batch size. If split_batches is false, batch size is \
                          multiplied by number of GPUs utilized ", 
-                    default=256, 
+                    default=64, 
                     type=int)
 parser.add_argument("--gradient_accumulation_steps", 
                     help="Number of Gradient Accumulation Steps for Training", 
@@ -73,10 +73,6 @@ parser.add_argument("--lr_step_size",
                     help="Number of epochs for every step", 
                     default=30, 
                     type=int)
-parser.add_argument("--warmup_epochs", 
-                     help="Number of learning rate warmup iterations on Cosine Scheduler", 
-                     default=5,
-                     type=int)
 parser.add_argument("--lr_warmup_start_factor",
                     help="Learning rate start factor (i.e if learning rate is 0.1 and start factor is 0.01, then lr warm-up from 0.1*0.01 to 0.1)",
                     default=0.1, 
@@ -119,15 +115,17 @@ local_logger = LocalLogger(path_to_experiment)
 ### Weights and Biases Logger ###
 experiment_config = {"epochs": args.epochs,
                      "effective_batch_size": args.batch_size*accelerator.num_processes, 
-                     "learning_rate": args.learning_rate,
-                     "warmup_epochs": args.warmup_epochs}
+                     "learning_rate": args.learning_rate}
 accelerator.init_trackers(args.experiment_name, config=experiment_config)
 
 ### Define Accuracy Metric ###
 accuracy_fn = Accuracy(task="multiclass", num_classes=args.num_classes).to(accelerator.device)
 
 ### Load Model ###
-model = ResNet50(num_classes=args.num_classes)
+model = resnet50()
+if args.num_classes != 1000:
+    ### Replace prediction head with nuber of classes ###
+    model.fc = nn.Linear(512, args.num_classes)
 
 ### Set Transforms for Training and Testing ###
 IMAGENET_MEAN = [0.485, 0.456, 0.406]
@@ -193,10 +191,7 @@ else:
     optimizer = torch.optim.SGD(model.parameters(), lr=args.learning_rate, momentum=args.momentum)
 
 ### Define Scheduler ###
-total_training_steps = len(trainloader) * args.epochs
-main_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=args.lr_step_size, gamma=args.step_lr_decay)
-warmup_scheduler = torch.optim.lr_scheduler.LinearLR(optimizer, start_factor=args.lr_warmup_start_factor, total_iters=args.warmup_epochs)
-scheduler = torch.optim.lr_scheduler.SequentialLR(optimizer, schedulers=[warmup_scheduler, main_scheduler], milestones=[args.warmup_epochs])
+scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=args.lr_step_size, gamma=args.step_lr_decay)
 
 ### Prepare Everything ###
 model, optimizer, trainloader, testloader, scheduler = accelerator.prepare(
