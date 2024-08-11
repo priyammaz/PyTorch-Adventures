@@ -168,6 +168,13 @@ def parse_args():
     )
 
     parser.add_argument(
+        "--max_grad_norm",
+        help="Max gradient norm used for stabilizing training with gradient clipping",
+        defautl=1.0, 
+        type=float
+    )
+
+    parser.add_argument(
         "--num_warmup_steps", 
         type=int, 
         default=20000, 
@@ -462,6 +469,7 @@ while train:
         if accumulate_steps % args.gradient_accumulation_steps == 0:
 
             ### Update Model ###
+            accelerator.clip_grad_norm_(model.parameters(), args.max_grad_norm)
             optimizer.step()
             optimizer.zero_grad(set_to_none=True)
 
