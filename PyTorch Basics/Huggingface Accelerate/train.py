@@ -10,8 +10,8 @@ from torchvision import transforms
 from torchvision import datasets
 from torchvision.models import resnet50
 from accelerate import Accelerator
-from transformers import get_cosine_schedule_with_warmup
 from torchmetrics import Accuracy
+
 from utils import LocalLogger
 
 import warnings 
@@ -125,7 +125,7 @@ accuracy_fn = Accuracy(task="multiclass", num_classes=args.num_classes).to(accel
 model = resnet50()
 if args.num_classes != 1000:
     ### Replace prediction head with nuber of classes ###
-    model.fc = nn.Linear(512, args.num_classes)
+    model.fc = nn.Linear(2048, args.num_classes)
 
 ### Set Transforms for Training and Testing ###
 IMAGENET_MEAN = [0.485, 0.456, 0.406]
@@ -190,7 +190,7 @@ if (not args.bias_weight_decay) or (not args.norm_weight_decay):
 else:
     optimizer = torch.optim.SGD(model.parameters(), lr=args.learning_rate, momentum=args.momentum)
 
-### Define Scheduler ###
+### Define Scheduler (must pass epoch into scheduler.step(epoch) because accelerator.prepare() adjusts for GPUS) ###
 scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=args.lr_step_size, gamma=args.step_lr_decay)
 
 ### Prepare Everything ###
@@ -326,8 +326,8 @@ for epoch in range(starting_checkpoint, args.epochs):
                      "training_acc": epoch_train_acc, 
                      "testing_acc": epoch_test_acc}, step=epoch)
     
-    ### Iterate Learning Rate Scheduler ###
-    scheduler.step()
+    ### Iterate Learning Rate Scheduler (we have to include epoch because accelerate will step num_gpus times otherwise!) ###
+    scheduler.step(epoch)
 
     ### Checkpoint Model ###
     if epoch % args.save_checkpoint_interval == 0:
