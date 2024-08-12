@@ -1,3 +1,4 @@
+# This will prepare the Wikipedia + Bookcorpus dataset and save them once tokenized ###
 python prepare_data.py \
     --test_split_pct 0.005 \
     --context_length 512 \
