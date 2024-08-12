@@ -330,12 +330,12 @@ class RobertaForQuestionAnswering(nn.Module):
                     backbone_keys = {}
                     for key in state_dict.keys():
 
-                        ### If Wav2Vec2 is in key name, just remove from the key name ###
+                        ### If roberta is in key name, just remove from the key name ###
                         if "roberta" in key:
                             new_key = key.replace("roberta.", "")
                             backbone_keys[new_key] = state_dict[key]
 
-                        ### If wav2vec2 is not in key name, it isnt a part of the backbone so ignore it ###
+                        ### If roberta is not in key name, it isnt a part of the backbone so ignore it ###
                         else:
                             continue
 
@@ -354,6 +354,9 @@ class RobertaForQuestionAnswering(nn.Module):
 
             ### Outputs have shape (Batch x Seq Len x Embedding Dim)
             outputs = outputs.last_hidden_state
+
+        else:
+            outputs = self.roberta(input_ids, attention_mask)
 
         ### Pass Outputs through QA Head, Shape (Batch x Seq Len x 2) ###
         logits = self.qa_head(outputs)

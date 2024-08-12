@@ -49,8 +49,8 @@ class InferenceModel:
         answer = self.tokenizer.decode(tokens, skip_special_tokens=True).strip()
         
         prediction = {"start_token_idx": start_token_idx, 
-                    "end_token_idx": end_token_idx, 
-                    "answer": answer}
+                      "end_token_idx": end_token_idx, 
+                      "answer": answer}
         
         return prediction
 
