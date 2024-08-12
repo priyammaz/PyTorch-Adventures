@@ -200,6 +200,7 @@ class VisionTransformer(nn.Module):
             pos_p=0.0,
             head_p=0.0,
             pooling="cls",
+            custom_weight_init=True,
             act_layer=nn.GELU,
             norm_layer=nn.LayerNorm):
         
@@ -224,6 +225,7 @@ class VisionTransformer(nn.Module):
             pooling: 
                 - "cls": Use a CLS token for sequence aggregation
                 - "avg": Use average pooling for sequence aggregation
+            custom_weight_init: If we want to use our _init_weights function to reinit all the weights 
             act_layer: Activation function for Attention computation
             norm_layer: Method of normalization
 
@@ -267,7 +269,9 @@ class VisionTransformer(nn.Module):
         self.head = nn.Linear(embed_dim, num_classes)
 
         ### Initialize all weights ###
-        self.apply(self._init_weights)
+        if custom_weight_init:
+            print("Enabling Custom Weight Initialization")
+            self.apply(self._init_weights)
 
     def _cls_pos_embed(self, x):
         if self.pooling == "cls":

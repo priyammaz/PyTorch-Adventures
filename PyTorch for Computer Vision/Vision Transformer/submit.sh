@@ -1,14 +1,21 @@
 accelerate launch train.py \
     --experiment_name "ViT_Imagenet_Training" \
-    --working_directory "work_dir" \
+    --wandb_run_name "aug" \
     --path_to_data "/mnt/datadrive/data/ImageNet" \
+    --working_directory "work_dir" \
     --num_classes 1000 \
     --epochs 300 \
     --warmup_epochs 30 \
-    --per_gpu_batch_size 256 \
+    --save_checkpoint_interval 5 \
+    --per_gpu_batch_size 384 \
     --gradient_accumulation_steps 1 \
     --learning_rate 0.003 \
     --weight_decay 0.1 \
+    --rand_augment_strength 9 \
+    --mixup_alpha 0.2 \
+    --cutmix_alpha 1.0 \
     --label_smoothing 0.1 \
+    --max_grad_norm 1.0 \
     --img_size 224 \
-    --num_workers 24
+    --num_workers 32 \
+    --custom_weight_init
