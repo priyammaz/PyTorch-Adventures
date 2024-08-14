@@ -224,8 +224,8 @@ else:
 num_training_steps = len(trainloader) * args.epochs // args.gradient_accumulation_steps
 num_warmup_steps = len(trainloader) * args.warmup_epochs // args.gradient_accumulation_steps
 scheduler = get_cosine_schedule_with_warmup(optimizer=optimizer, 
-                                            num_warmup_steps=num_warmup_steps * accelerator.num_processes, 
-                                            num_training_steps=num_training_steps * accelerator.num_processes)
+                                            num_warmup_steps=num_warmup_steps, 
+                                            num_training_steps=num_training_steps)
 
 ### Prepare Everything ###
 model, optimizer, trainloader, testloader, scheduler = accelerator.prepare(
