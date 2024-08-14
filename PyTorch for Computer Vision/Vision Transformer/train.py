@@ -4,10 +4,11 @@ import torch
 import torch.nn as nn
 import argparse
 from tqdm import tqdm
-from transformers import get_cosine_schedule_with_warmup
-from accelerate import Accelerator
 from torch.utils.data import DataLoader
-from torchvision.datasets import ImageFolder
+from torchvision import datasets
+from torchvision.models import resnet18
+from accelerate import Accelerator
+from transformers import get_cosine_schedule_with_warmup
 
 import utils
 from model import VisionTransformer
@@ -72,7 +73,7 @@ def parse_args():
                         help="Weight decay for optimizer", 
                         default=0.1, 
                         type=float)
-    parser.add_argument("--rand_augment_strength", 
+    parser.add_argument("--random_aug_magnitude", 
                         help="Magnitude of random augments, if 0 the no random augment will be applied",
                         default=9, 
                         type=int)
@@ -145,7 +146,7 @@ if args.log_wandb:
                         "effective_batch_size": args.per_gpu_batch_size*accelerator.num_processes, 
                         "learning_rate": args.learning_rate,
                         "warmup_epochs": args.warmup_epochs,
-                        "rand_augment": args.rand_augment_strength,
+                        "rand_augment": args.random_aug_magnitude,
                         "cutmix_alpha": args.cutmix_alpha,
                         "mixup_alpha": args.mixup_alpha,
                         "custom_weight_init": args.custom_weight_init}
@@ -153,35 +154,39 @@ if args.log_wandb:
     accelerator.init_trackers(args.experiment_name, config=experiment_config, init_kwargs={"wandb": {"name": args.wandb_run_name}})
 
 ### Load Model ###
-model = VisionTransformer(num_classes=args.num_classes, custom_weight_init=args.custom_weight_init)
-model_parameters = filter(lambda p: p.requires_grad, model.parameters())
-params = sum([np.prod(p.size()) for p in model_parameters])
-print("Number of Trainable Parameters:", params)
+model = VisionTransformer(img_size=args.img_size, 
+                          num_classes=args.num_classes,
+                          custom_weight_init=args.custom_weight_init)
 
-### Load Datasets w/ Transforms ###
+### Set Transforms for Training and Testing ###
 train_transforms = utils.train_transformations(image_size=(args.img_size, args.img_size),
-                                               random_aug_magnitude=args.rand_augment_strength)
-eval_transforms = utils.eval_transformations(image_size=(args.img_size, args.img_size))
+                                               random_aug_magnitude=args.random_aug_magnitude)
+test_transform = utils.eval_transformations()
 
-train_set = ImageFolder(os.path.join(args.path_to_data, "train"), transform=train_transforms)
-test_set = ImageFolder(os.path.join(args.path_to_data, "validation"), transform=eval_transforms)
+### Load Dataset ###
+path_to_train_data = os.path.join(args.path_to_data, "train")
+path_to_valid_data = os.path.join(args.path_to_data, "validation")
+trainset = datasets.ImageFolder(path_to_train_data, transform=train_transforms)
+testset = datasets.ImageFolder(path_to_valid_data, transform=test_transform)
 
-### Load DataLoader ###
-minibach_size = args.per_gpu_batch_size // args.gradient_accumulation_steps
-collate_fn = utils.mixup_cutmix_collate_fn(mixup_alpha=args.mixup_alpha, 
-                                           cutmix_alpha=args.cutmix_alpha,
-                                           num_classes=args.num_classes)
-trainloader = DataLoader(train_set, 
-                         batch_size=minibach_size, 
-                         collate_fn=collate_fn, 
+
+### Prep DataLoader with Custom Collate Function (No need on Validation only for Training) ###
+mini_batchsize = args.per_gpu_batch_size // args.gradient_accumulation_steps 
+mixup_cutmix_collate_fn = utils.mixup_cutmix_collate_fn(mixup_alpha=args.mixup_alpha, 
+                                                        cutmix_alpha=args.cutmix_alpha,
+                                                        num_classes=args.num_classes)
+trainloader = DataLoader(trainset, 
+                         batch_size=mini_batchsize, 
+                         shuffle=True, 
+                         collate_fn=mixup_cutmix_collate_fn, 
                          num_workers=args.num_workers, 
                          pin_memory=True)
 
-testloader = DataLoader(test_set, 
-                        batch_size=minibach_size,
+testloader = DataLoader(testset, 
+                        batch_size=mini_batchsize, 
+                        shuffle=True, 
                         num_workers=args.num_workers, 
                         pin_memory=True)
-
 
 ### Define Loss Function ###
 loss_fn = nn.CrossEntropyLoss(label_smoothing=args.label_smoothing)
@@ -221,6 +226,7 @@ num_warmup_steps = len(trainloader) * args.warmup_epochs // args.gradient_accumu
 scheduler = get_cosine_schedule_with_warmup(optimizer=optimizer, 
                                             num_warmup_steps=num_warmup_steps * accelerator.num_processes, 
                                             num_training_steps=num_training_steps * accelerator.num_processes)
+
 ### Prepare Everything ###
 model, optimizer, trainloader, testloader, scheduler = accelerator.prepare(
     model, optimizer, trainloader, testloader, scheduler
@@ -261,7 +267,7 @@ for epoch in range(starting_checkpoint, args.epochs):
 
         ### Move Data to Correct GPU ###
         images, targets = images.to(accelerator.device), targets.to(accelerator.device)
-
+        
         with accelerator.accumulate(model):
             
             ### Pass Through Model ###
@@ -272,9 +278,11 @@ for epoch in range(starting_checkpoint, args.epochs):
             accumulated_loss += loss / args.gradient_accumulation_steps
 
             ### Compute and Store Accuracy ###
-            top1_accuracy, top5_accuracy = utils.accuracy(pred, targets)
-            accumulated_top1_accuracy += top1_accuracy / args.gradient_accumulation_steps
-            accumulated_top5_accuracy += top5_accuracy / args.gradient_accumulation_steps
+            # predicted = pred.argmax(axis=1)
+            # targets = targets.argmax(axis=1)
+            top1_acc, top5_acc = utils.accuracy(pred, targets)
+            accumulated_top1_accuracy += top1_acc / args.gradient_accumulation_steps
+            accumulated_top5_accuracy += top5_acc / args.gradient_accumulation_steps
 
             ### Compute Gradients ###
             accelerator.backward(loss)
@@ -294,13 +302,13 @@ for epoch in range(starting_checkpoint, args.epochs):
             
             ### Gather Metrics Across GPUs ###
             loss_gathered = accelerator.gather_for_metrics(accumulated_loss)
-            accuracy_top1_gathered = accelerator.gather_for_metrics(accumulated_top1_accuracy)
-            accuracy_top5_gathered = accelerator.gather_for_metrics(accumulated_top5_accuracy)
+            top1_accuracy_gathered = accelerator.gather_for_metrics(accumulated_top1_accuracy)
+            top5_accuracy_gathered = accelerator.gather_for_metrics(accumulated_top5_accuracy)
 
             ### Store Current Iteration Error ###
             train_loss.append(torch.mean(loss_gathered).item())
-            train_top1_acc.append(torch.mean(accuracy_top1_gathered).item())
-            train_top5_acc.append(torch.mean(accuracy_top5_gathered).item())
+            train_top1_acc.append(torch.mean(top1_accuracy_gathered).item())
+            train_top5_acc.append(torch.mean(top5_accuracy_gathered).item())
 
             ### Reset Accumulated for next Accumulation ###
             accumulated_loss, accumulated_top1_accuracy, accumulated_top5_accuracy = 0, 0, 0
@@ -319,12 +327,13 @@ for epoch in range(starting_checkpoint, args.epochs):
         loss = loss_fn(pred, targets)
 
         ### Computed Accuracy ###
-        top1_accuracy, top5_accuracy = utils.accuracy(pred, targets)
+        # predicted = pred.argmax(axis=1)
+        top1_acc, top5_acc = utils.accuracy(pred, targets)
 
         ### Gather across GPUs ###
         loss_gathered = accelerator.gather_for_metrics(loss)
-        top1_accuracy_gathered = accelerator.gather_for_metrics(top1_accuracy)
-        top5_accuracy_gathered = accelerator.gather_for_metrics(top5_accuracy)
+        top1_accuracy_gathered = accelerator.gather_for_metrics(top1_acc)
+        top5_accuracy_gathered = accelerator.gather_for_metrics(top5_acc)
 
         ### Store Current Iteration Error ###
         test_loss.append(torch.mean(loss_gathered).item())
@@ -338,17 +347,23 @@ for epoch in range(starting_checkpoint, args.epochs):
     epoch_test_top1_acc = np.mean(test_top1_acc)
     epoch_test_top5_acc = np.mean(test_top5_acc)
 
-    accelerator.print(f"Training Top 1 Accuracy: ", epoch_train_top1_acc, "Training Top 5 Accuracy", epoch_train_top5_acc, "Training Loss:", epoch_train_loss)
-    accelerator.print(f"Testing Top 1 Accuracy: ", epoch_test_top1_acc, "Testing Top 5 Accuracy", epoch_test_top5_acc, "Training Loss:", epoch_train_loss)
-        
+    accelerator.print("Training Top 1 Accuracy:", round(epoch_train_top1_acc, 3), \
+                      "Training Top 5 Accuracy:", round(epoch_train_top5_acc, 3), \
+                      "Training Loss:", round(epoch_train_loss,3))
+    
+    accelerator.print("Testing Top 1 Accuracy:", round(epoch_test_top1_acc,3), \
+                      "Testing Top 5 Accuracy:", round(epoch_test_top5_acc,3), \
+                      "Testing Loss:", round(epoch_test_loss,3))
+
     ### Log with Weights and Biases ###
-    accelerator.log({"learning_rate": scheduler.get_last_lr()[0],
-                     "training_loss": epoch_train_loss,
-                     "testing_loss": epoch_test_loss, 
-                     "training_top1_acc": epoch_train_top1_acc, 
-                     "training_top5_acc": epoch_train_top5_acc,
-                     "testing_top1_acc": epoch_test_top1_acc, 
-                     "testing_top5_acc": epoch_test_top5_acc}, step=epoch)
+    if args.log_wandb:
+        accelerator.log({"training_loss": epoch_train_loss,
+                        "testing_loss": epoch_test_loss, 
+                        "training_top1_acc": epoch_train_top1_acc,
+                        "training_top5_acc": epoch_train_top5_acc, 
+                        "testing_top1_acc": epoch_test_top1_acc,
+                        "testing_top5_acc": epoch_test_top5_acc, 
+                        "learning_rate": scheduler.get_last_lr()[0]}, step=epoch)
     
     ### Checkpoint Model ###
     if epoch % args.save_checkpoint_interval == 0:
