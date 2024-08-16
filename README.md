@@ -107,8 +107,8 @@ There are a few other datasets that we will use but are inconsistent to automati
 - **Visual Question Answering**
 
 ## Dive into Attention ##
-- **Barebones Attention Mechanism**
-- **Sparse Windowed Attention**
+- [**Attention is All You Need**](PyTorch%20for%20Transformers/Attention%20Mechanisms/Attention/) &nbsp; [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1RG-JdVTvLr7Z2XUSbDha--kXhYqUaBs7?usp=sharing)
+- [**Sparse Windowed Attention**](PyTorch%20for%20Transformers/Attention%20Mechanisms/Sliding%20Window%20Attention/)
 - **Linear Attention**
 
 ## Sequence to Sequence Modeling ##
