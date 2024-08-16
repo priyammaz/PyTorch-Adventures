@@ -19,7 +19,6 @@ from accelerate import Accelerator
 
 from utils import RobertaConfig, RobertaMaskedLMCollateFunction
 from model import RobertaForMaskedLM
-from windowed_attention import WindowedAttention
 
 def parse_args():
     ### PARSE COMMAND LINE ARGS ###
