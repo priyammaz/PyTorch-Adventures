@@ -19,6 +19,7 @@ from accelerate import Accelerator
 
 from utils import RobertaConfig, RobertaMaskedLMCollateFunction
 from model import RobertaForMaskedLM
+from windowed_attention import WindowedAttention
 
 def parse_args():
     ### PARSE COMMAND LINE ARGS ###
@@ -140,6 +141,35 @@ def parse_args():
         help="Standard deviation of linear layers initialized as normal distribution",
         default=0.02,
         type=float
+    )
+
+    ### WINDOWED ATTENTION CONFIG ###
+    parser.add_argument(
+        "--attention_type",
+        help="Do you wan to use Full attention or Windowed attention?",
+        choices=("windowed", "full"),
+        default="windowed"
+    )
+
+    parser.add_argument(
+        "--window_size",
+        help="What window size do you want to use for windowed attention?",
+        default=512, 
+        type=int
+    )
+
+    parser.add_argument(
+        "--look_backward",
+        help="how many previous windows do we want to attend to?",
+        default=1, 
+        type=int
+    )
+
+    parser.add_argument(
+        "--look_forward",
+        help="how many future windows do we want to attend to?",
+        default=1, 
+        type=int
     )
 
     ##############################
@@ -323,6 +353,10 @@ config = RobertaConfig(
     embedding_dimension = args.embedding_dimension,
     num_transformer_blocks = args.num_transformer_blocks,
     num_attention_heads = args.num_attention_heads,
+    attention_type=args.attention_type,
+    window_size=args.window_size, 
+    look_backward=args.look_backward, 
+    look_forward=args.look_forward,
     mlp_ratio = args.mlp_ratio,
     layer_norm_eps = args.layer_norm_eps, 
     hidden_dropout_p = args.hidden_dropout_p,

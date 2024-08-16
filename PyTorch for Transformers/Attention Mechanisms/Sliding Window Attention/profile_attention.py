@@ -6,30 +6,11 @@ from fvcore.nn import FlopCountAnalysis
 import matplotlib.pyplot as plt
 
 from utils import RobertaConfig
-from model import RobertaLocalAttention
+from windowed_attention import WindowedAttention
 
 parser = argparse.ArgumentParser("Arguments for RoBERTa Model Profiling")
 
-parser.add_argument(
-    "--num_attention_heads",
-    help="Number of heads of attention",
-    default=12,
-    type=int
-)
-
-parser.add_argument(
-    "--embedding_dimension",
-    help="Transformer embedding dimension",
-    default=768,
-    type=int
-)
-
 ### WINDOWED ATTENTION CONFIG ###
-parser.add_argument(
-    "--context_length",
-    help="What is the maximum sequence length we want to use?",
-    default=2048
-)
 
 parser.add_argument(
     "--window_size",
@@ -52,19 +33,22 @@ parser.add_argument(
     type=int
 )
 
+parser.add_argument(
+    "--multiplier",
+    help="how many future windows do we want to attend to?",
+    default=40, 
+    type=int
+)
+
 ### Compute Arguments ###
 args = parser.parse_args()
 
 ### Grab Config ###
 config = RobertaConfig(
 
-
-    embedding_dimension = args.embedding_dimension,
-    num_attention_heads = args.num_attention_heads,
     window_size=args.window_size, 
     look_backward=args.look_backward, 
     look_forward=args.look_forward,
-    context_length = args.context_length,
 
 )
 
@@ -117,9 +101,15 @@ class SelfAttention(nn.Module):
 
 ### Load Different Attention Mechanisms so we can Compute Flops Comparison ###
 self_attention = SelfAttention(config).to("cuda")
-local_attention = RobertaLocalAttention(config).to("cuda")
+local_attention = WindowedAttention(window_size=config.window_size,
+                                    causal=False,
+                                    look_forward=config.look_forward,
+                                    look_backward=config.look_backward,
+                                    embedding_dimension=config.embedding_dimension,
+                                    num_attention_heads=config.num_attention_heads,
+                                    attention_dropout_p=config.attention_dropout_p).to("cuda")
 
-lens = [args.window_size*(i+1) for i in range(40)]
+lens = [args.window_size*(i+1) for i in range(args.multiplier)]
 self_attn_flops = []
 local_attn_flops = []
 
@@ -132,7 +122,7 @@ for len in lens:
     local_attn_flops.append(la_flops)
 
 plt.plot(lens, self_attn_flops, label="Self Attention")
-plt.plot(lens, local_attn_flops, label="Local Attention")
+plt.plot(lens, local_attn_flops, label="Windowed Attention")
 plt.xlabel("Sequence Length")
 plt.ylabel("FLOPS")
 plt.title("FLOPS Comparison Between Full and Windowed Attention")
