@@ -82,7 +82,7 @@ All you need to provide is, where do you want to save the data and the huggingfa
 
 ### Train Model 
 
-We can now train our model on our prepped data!
+We can now train our model on our prepped data! A more full training script can be found in `pretrain.sh`. I wanted to try a very small window size just to see how it would go, so I set it to a window of 128 for training!
 
 ```bash
 accelerate launch pretrain_roberta.py \
@@ -106,17 +106,13 @@ accelerate launch pretrain_roberta.py \
     --evaluation_interval 2500 \
     --checkpoint_interval 2500 \
     --learning_rate 6e-4 \
-    --weight_decay 0.01 \
-    --adam_beta1 0.9 \
-    --adam_beta2 0.98 \
-    --adam_epsilon 1e-6 \
     --seed 42 \
     --log_wandb
 ```
 
+I dont have enough free GPU resources available right now to do a full training run (about 4 days), so I was just looking for evidence of learning. The training results of the first 10K steps can be found [here](https://api.wandb.ai/links/exploratorydataadventure/r6203k9h)!
 
-
-
-
+### SUPER CAVEAT
+This implementation is not battle tested and probably not even optimal. I would use it at your own risk! This was mainly a learning opportunity to explore a bit how windowed attention could be implemented. If you really need to use windowed attention in production, just go use Flash Attention as its already implemented and optimized there!
 
 
