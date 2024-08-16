@@ -1,8 +1,8 @@
 accelerate launch pretrain_roberta.py \
     --experiment_name "RoBERTa_Pretraining_localattention" \
-    --working_directory "work_dir" \
+    --working_directory "<PATH_TO_WORKDIR>" \
     --hf_model_name "FacebookAI/roberta-base" \
-    --path_to_prepped_data "/mnt/datadrive/data/prepped_data/roberta_data_long" \
+    --path_to_prepped_data "<PATH_TO_DATA>" \
     --context_length 2048 \
     --masking_probability 0.15 \
     --num_workers 24 \
@@ -12,6 +12,10 @@ accelerate launch pretrain_roberta.py \
     --num_attention_heads 12 \
     --embedding_dimension 768 \
     --mlp_ratio 4 \
+    --attention_type "windowed" \
+    --window_size 128 \
+    --look_backward 1 \
+    --look_forward 1 \
     --max_grad_norm 1.0 \
     --layer_norm_eps 1e-5 \
     --initializer_range 0.02 \
@@ -28,8 +32,7 @@ accelerate launch pretrain_roberta.py \
     --adam_beta1 0.9 \
     --adam_beta2 0.98 \
     --adam_epsilon 1e-6 \
-    --seed 42 \
-    --log_wandb
+    --seed 42 
 
 
 
