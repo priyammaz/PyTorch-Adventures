@@ -18,5 +18,4 @@ accelerate launch train.py \
     --max_grad_norm 1.0 \
     --img_size 224 \
     --num_workers 32 \
-    --custom_weight_init \
-    --log_wandb
+    --custom_weight_init
