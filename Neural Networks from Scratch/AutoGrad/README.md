@@ -1,7 +1,7 @@
 # MyTorch: AutoGrad
 
 ### Code Inspiration!
-- To expand scalars to Matricies and Tensors, the [Autograd-from-Scratch](https://github.com/eduardoleao052/Autograd-from-scratch/tree/main) repository by [eduardoleao052](https://github.com/eduardoleao052) was extremely helpful and the main inspiration of the code. My code is has a small subset of the incredible features built into this package, but hopefully after walking through my implementation, the remaining will make more sense I hope!
+- To expand scalars to Matricies and Tensors, the [Autograd-from-Scratch](https://github.com/eduardoleao052/Autograd-from-scratch/tree/main) repository by [eduardoleao052](https://github.com/eduardoleao052) was extremely helpful and the main inspiration of the code. My code is has a small subset of the incredible features built into this package, but hopefully after walking through my implementation, the remaining will make more sense!
 
 In the previous section we implemented ManualGrad that definitely works but provides one inconvenience: For every forward function we define, we need to also explicitly define the backward function. This is completely unecessary though if we are able to define any complicated function as a composition of many functions. 
 
