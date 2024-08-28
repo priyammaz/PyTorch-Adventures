@@ -61,6 +61,10 @@ There are a few other datasets that we will use but are inconsistent to automati
 
 - [**Distributed Training with Huggingface 🤗 Accelerate**](PyTorch%20Basics/Huggingface%20Accelerate/)
 
+## Neural Networks from Scratch ##
+- [**ManualGrad: Simple Neural Network Implementation**](Neural%20Networks%20from%20Scratch/ManualGrad/)
+- [**MyTorch: Building a Simple AutoGrad Engine**](Neural%20Networks%20from%20Scratch/AutoGrad/)
+  
 ## Computer Vision ##
 - [**Going Deeper with ResNet**](PyTorch%20for%20Computer%20Vision/ResNet/) &nbsp; [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1OPnOApHCcZFFWkw-zfhNvfyQeswQxgea?usp=sharing)
 - [**UNet for Image Segmentation**](PyTorch%20for%20Computer%20Vision/UNET%20for%20Segmentation/)
