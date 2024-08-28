@@ -18,6 +18,18 @@ Unlike simpler scalar operations as seen in [MicroGrad](https://github.com/karpa
 ## ManualGrad
 
 I will call this section ManualGrad, because for every function we pass our data through, we must provide both the forward pass and the backward derivative. For this we will build a simple Neural Network of Linear layers and Sigmoid activation functions to fit a quadratic function. 
+ 
+An example of Manually passing gradients is the following, lets say we want to pass our data through the sigmoid function: 
+
+
+$$ \sigma(x) = \frac{1}{1 + \exp(-x)} $$
+
+We also know that the [derivative of the sigmoid function](https://www.geeksforgeeks.org/derivative-of-the-sigmoid-function/) is as follows:
+
+$$\frac{d \sigma(x)}{d x} = \sigma(x) (1 - \sigma(x)) $$
+
+This means when we define our function, we need to specify our forward and backwards manually!
+
 
 ## AutoGrad
 
@@ -35,7 +47,14 @@ With these limited computations, we can represent a large class of functions! Ta
 
 $$ sigmoid(x) = \frac{1}{1 + \exp(-x)} $$
 
-But really, this is just a combination of exponentiation, sum and division! So as long as we know the derivative of the three sub-operations in sigmoid, we can use chain rule to get the overall derivative of the entire function!
+But really, this is just a combination of exponentiation, sum and division! So as long as we know the derivative of the three sub-operations in sigmoid, we can use chain rule to get the overall derivative of the entire function! Lets write the composition of functions here:
+
+$$a(x) = e^{-x}$$
+$$b(x) = 1 + a(x)$$
+$$\sigma(x) = \frac{1}{b(x)}$$
+
+If you take the chain rule derivative of $\frac{d \sigma(x)}{d x}$ you will end up with the same formula as above! This is obviously the case as the derivation requires us to use chain rule to begin with, so I feel like im saying everything twice. The perk of AutoGrad though is, as long as we have the derivative of our sub-operations, then AutoGrad will automatically chain them together to compute the overall derivative of the function, without manually specifying as we did above!
+
 
 #### Super Caveat!!
 
