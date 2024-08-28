@@ -29,6 +29,7 @@ class MyTorchMNIST(nn.Module):
         return x
     
 model = MyTorchMNIST()
+
 ### Prep Dataset ###
 train = MNIST("../../data", train=True, download=True)
 test = MNIST("../../data", train=False, download=True)
