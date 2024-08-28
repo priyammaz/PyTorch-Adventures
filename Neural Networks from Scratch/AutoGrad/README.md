@@ -22,7 +22,9 @@ $$ sigmoid(x) = \frac{1}{1 + \exp(-x)} $$
 But really, this is just a combination of exponentiation, sum and division! So as long as we know the derivative of the three sub-operations in sigmoid, we can use chain rule to get the overall derivative of the entire function! Lets write the composition of functions here:
 
 $$a(x) = e^{-x}$$
+
 $$b(x) = 1 + a(x)$$
+
 $$\sigma(x) = \frac{1}{b(x)}$$
 
 If you take the chain rule derivative of $\frac{d \sigma(x)}{d x}$ you will end up with the same formula as normal for the derivative of the Sigmoid function. 
