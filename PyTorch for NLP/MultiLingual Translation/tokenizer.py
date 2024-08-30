@@ -68,7 +68,7 @@ class MultilingualTokenizer:
             
         return decoded
         
-
+    
         
 
 if __name__ == "__main__":
