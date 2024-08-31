@@ -6,7 +6,7 @@ def train_tokenizer(path_to_data, path_to_store):
     dataset = pd.read_csv(path_to_data)
     target_text = list(dataset.target)
 
-    special_tokens = ["<UNK>", "<PAD>", "<EOS>"]
+    special_tokens = ["<unk>", "<pad>", "<bos>", "<eos>"]
     tokenizer = SentencePieceBPETokenizer()
     tokenizer.train_from_iterator(
         target_text,
@@ -25,19 +25,21 @@ class MultilingualTokenizer:
         self.path_to_vocab = path_to_vocab
         self.tokenizer = self.prepare_tokenizer()
         self.vocab_size = len(self.tokenizer.get_vocab())
-        self.special_tokens_dict = {"<UNK>": self.tokenizer.token_to_id("<UNK>"),
-                                    "<EOS>": self.tokenizer.token_to_id("<EOS>"),
-                                    "<PAD>": self.tokenizer.token_to_id("<PAD>")}
+        self.special_tokens_dict = {"<unk>": self.tokenizer.token_to_id("<unk>"),
+                                    "<eos>": self.tokenizer.token_to_id("<eos>"),
+                                    "<pad>": self.tokenizer.token_to_id("<pad>"),
+                                    "<bos>": self.tokenizer.token_to_id("<bos>")}
 
 
     def prepare_tokenizer(self):
         tokenizer = Tokenizer.from_file(self.path_to_vocab)
         tokenizer.post_processor = TemplateProcessing(
-            single="$A <EOS>",
+            single="<bos> $A <eos>",
             special_tokens=[
-                ("<EOS>", tokenizer.token_to_id("<EOS>"))
-                ]
-            )
+                ("<eos>", tokenizer.token_to_id("<eos>")),
+                ("<bos>", tokenizer.token_to_id("<bos>"))
+            ]
+         )
         
         return tokenizer
 
@@ -45,7 +47,7 @@ class MultilingualTokenizer:
     def encode(self, input):
         
         def _parse_tokenized(tokenized):
-            return {"input_ids": tokenized.ids}
+            return tokenized.ids
         
         if isinstance(input, str):
             tokenized = self.tokenizer.encode(input)
@@ -68,19 +70,19 @@ class MultilingualTokenizer:
             
         return decoded
         
-    
+
         
 
 if __name__ == "__main__":
-    # path_to_data = "/mnt/datadrive/data/machine_translation/english2mutilingual_train.csv"
-    # path_to_store = "trained_tokenizer/sentencepiece_tokenizer.json"
-    # train_tokenizer(path_to_data, path_to_store)
+    path_to_data = "/mnt/datadrive/data/machine_translation/english2mutilingual_train.csv"
+    path_to_store = "trained_tokenizer/sentencepiece_tokenizer.json"
+    train_tokenizer(path_to_data, path_to_store)
 
     path_to_vocab = "trained_tokenizer/sentencepiece_tokenizer.json"
     tokenizer = MultilingualTokenizer(path_to_vocab)
 
     sample = "hello world"
-    encoded = tokenizer.encode(sample)["input_ids"]
+    encoded = tokenizer.encode(sample)
     decoded = tokenizer.decode([encoded, encoded, encoded], skip_special_tokens=False)
     print(tokenizer.vocab_size)
 
