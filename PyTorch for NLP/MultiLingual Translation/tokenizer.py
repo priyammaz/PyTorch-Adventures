@@ -94,6 +94,6 @@ if __name__ == "__main__":
     tokenizer = FrenchTokenizer("trained_tokenizer/french_wp.json")
     sentence = "Héllo world!"
     enc = tokenizer.encode(sentence)
-    # print(enc)
+    print(enc)
     dec = tokenizer.decode(enc, skip_special_tokens=False)
     print(dec)

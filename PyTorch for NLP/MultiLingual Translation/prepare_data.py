@@ -4,7 +4,7 @@ from datasets import load_dataset, concatenate_datasets, load_from_disk
 from tokenizer import FrenchTokenizer
 from transformers import AutoTokenizer
 
-def build_french_dataset(path_to_data_root):
+def build_english2french_dataset(path_to_data_root):
 
     hf_dataset = []
  
@@ -38,7 +38,7 @@ def build_french_dataset(path_to_data_root):
 
     hf_dataset.save_to_disk(path_to_save)
 
-def tokenize_english2french_dataset(path_to_hf_data, path_to_save, num_workers=24, truncate=False, max_length=512):
+def tokenize_english2french_dataset(path_to_hf_data, path_to_save, num_workers=24, truncate=False, max_length=512, min_length=5):
 
     french_tokenizer = FrenchTokenizer("trained_tokenizer/french_wp.json", truncate=truncate, max_length=max_length)
     english_tokenzer = AutoTokenizer.from_pretrained("google-bert/bert-base-uncased")
@@ -59,13 +59,17 @@ def tokenize_english2french_dataset(path_to_hf_data, path_to_save, num_workers=2
     
     tokenized_dataset = raw_dataset.map(_tokenize_text, batched=True, num_proc=num_workers)
     tokenized_dataset = tokenized_dataset.remove_columns(["english_src", "french_tgt"])
-    
+
+    filter_func = lambda example: (len(example["tgt_ids"]) > min_length)
+    tokenized_dataset = tokenized_dataset.filter(filter_func)
+    print(tokenized_dataset)
+
     tokenized_dataset.save_to_disk(path_to_save)
 
 
 if __name__ == "__main__":
     # path_to_data_root = "/mnt/datadrive/data/machine_translation/english2french/"
-    # build_french_dataset(path_to_data_root)
+    # build_english2french_dataset(path_to_data_root)
 
     path_to_data = "/mnt/datadrive/data/machine_translation/english2french/hf_french2english_corpus"
     path_to_save = "/mnt/datadrive/data/machine_translation/english2french/tokenized_french2english_corpus"
