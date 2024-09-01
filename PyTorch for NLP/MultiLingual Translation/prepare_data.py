@@ -1,58 +1,72 @@
 import os
-import pandas as pd
-from tqdm import tqdm
-from sklearn.model_selection import train_test_split
+from datasets import load_dataset, concatenate_datasets, load_from_disk
 
-def combine_files(path_to_data, 
-                  test_size=0.05):
-    
-    all_data = []
+from tokenizer import FrenchTokenizer
+from transformers import AutoTokenizer
 
-    paths_to_raw_data = [file for file in os.listdir(path_to_data) if ".txt" in file]
-    for file in tqdm(paths_to_raw_data):
-        
-        ### For .txt Files only ###
-        if ".txt" in file:
+def build_french_dataset(path_to_data_root):
 
-            ### Grab Language Name ###
-            language_name = file.split(".")[0].replace("english2", "").title()
+    hf_dataset = []
+ 
+    for dir in os.listdir(path_to_data_root):
+        print("Processing:", dir)
 
-            ### Load English 2 Language Data ###
-            path_to_language = os.path.join(path_to_data, file)
-            df = pd.read_csv(path_to_language, sep='\t')
+        path_to_dir = os.path.join(path_to_data_root, dir)
+
+        french_text = english_text = None
+
+        for txt in os.listdir(path_to_dir):
+            if txt.endswith(".fr"):
+                french_text = os.path.join(path_to_dir, txt)
+            elif txt.endswith(".en"):
+                english_text = os.path.join(path_to_dir, txt)
+
+        if french_text is not None and english_text is not None:
+            french_dataset = load_dataset("text", data_files=french_text)["train"]
+            english_dataset = load_dataset("text", data_files=english_text)["train"]
+
+            english_dataset = english_dataset.rename_column("text", "english_src")
+            english_dataset = english_dataset.add_column("french_tgt", french_dataset["text"])
             
-            ### Grab English Column and Target Language ###
-            english = df.iloc[:, 0]
-            target = df.iloc[:, 1]
+            hf_dataset.append(english_dataset)
 
-            ### Remove final punctuation on english and targets ###
-            english = [e.strip() for e in english]
-            target = [t.strip() for t in target]
+    hf_dataset = concatenate_datasets(hf_dataset)
+    
+    hf_dataset = hf_dataset.train_test_split(test_size=0.005)
 
-            ### Store data and append to all_data ###
-            cleaned_data = pd.DataFrame({"english": english, "target": target})
-            cleaned_data["target_language"] = language_name
-            all_data.append(cleaned_data)
+    path_to_save = os.path.join(path_to_data_root, "hf_french2english_corpus")
 
-    ### Concatenate Data ###
-    all_data = pd.concat(all_data)
+    hf_dataset.save_to_disk(path_to_save)
 
-    ### Split into Training and Testing ###
-    training_data, testing_data = train_test_split(all_data, test_size=test_size)
+def tokenize_english2french_dataset(path_to_hf_data, path_to_save, num_workers=24, truncate=False, max_length=512):
 
-    ### Save Final Dataset ###
-    path_to_save = os.path.join(path_to_data, "english2mutilingual_train.csv")
-    training_data.to_csv(path_to_save, index=False)
-    print(f"Saved Training Data to: {path_to_save}")
-    print(f"Total Number of Training Samples: {len(training_data)}")
-    print(f"Number of Target Languages: {len(training_data["target_language"].unique())}")
+    french_tokenizer = FrenchTokenizer("trained_tokenizer/french_wp.json", truncate=truncate, max_length=max_length)
+    english_tokenzer = AutoTokenizer.from_pretrained("google-bert/bert-base-uncased")
 
-    path_to_save = os.path.join(path_to_data, "english2mutilingual_test.csv")
-    testing_data.to_csv(path_to_save, index=False)
-    print(f"Saved Testing Data to: {path_to_save}")
-    print(f"Total Number of Training Samples: {len(testing_data)}")
-    print(f"Number of Target Languages: {len(testing_data["target_language"].unique())}")
+    raw_dataset = load_from_disk(path_to_hf_data)
+    
+    def _tokenize_text(examples):
+
+        english_text = examples["english_src"]
+        french_text = examples["french_tgt"]
+        src_ids = english_tokenzer(english_text, truncation=True, max_length=512)["input_ids"]
+        tgt_ids = french_tokenizer.encode(french_text)
+
+        batch = {"src_ids": src_ids, 
+                 "tgt_ids": tgt_ids}
+        
+        return batch
+    
+    tokenized_dataset = raw_dataset.map(_tokenize_text, batched=True, num_proc=num_workers)
+    tokenized_dataset = tokenized_dataset.remove_columns(["english_src", "french_tgt"])
+    
+    tokenized_dataset.save_to_disk(path_to_save)
+
 
 if __name__ == "__main__":
-    path_to_data = "/mnt/datadrive/data/machine_translation"
-    combine_files(path_to_data=path_to_data)
+    # path_to_data_root = "/mnt/datadrive/data/machine_translation/english2french/"
+    # build_french_dataset(path_to_data_root)
+
+    path_to_data = "/mnt/datadrive/data/machine_translation/english2french/hf_french2english_corpus"
+    path_to_save = "/mnt/datadrive/data/machine_translation/english2french/tokenized_french2english_corpus"
+    tokenize_english2french_dataset(path_to_data, path_to_save, truncate=True)

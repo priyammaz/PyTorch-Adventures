@@ -282,15 +282,18 @@ class Transformer(nn.Module):
 
         self.head = nn.Linear(config.embedding_dimension, config.tgt_vocab_size)
 
+        ### Initialize Weights ###
+        self.apply(_init_weights_)
+
     def forward(self, 
                 src_ids, 
                 tgt_ids, 
                 src_attention_mask=None, 
                 tgt_attention_mask=None):
-        
+
         src_embeddings = self.encodings.forward_src(src_ids)
         tgt_embeddings = self.encodings.forward_tgt(tgt_ids)
-        
+
         for layer in self.encoder:
             src_embeddings = layer(src_embeddings, 
                                    src_attention_mask)
@@ -304,19 +307,68 @@ class Transformer(nn.Module):
         pred = self.head(tgt_embeddings)
 
         return pred
+
+    @torch.no_grad()
+    def inference(self, 
+                  src_ids,
+                  tgt_start_id=2,
+                  tgt_end_id=3,
+                  max_len=512):
     
+        tgt_ids = torch.tensor([tgt_start_id], device=src_ids.device).reshape(1,1)
 
-# src = torch.randint(0,1000, (2,128))
-# tgt = torch.randint(0,1000, (2,256))
+        ### Encode source ###
+        src_embeddings = self.encodings.forward_src(src_ids)
+        for layer in self.encoder:
+            src_embeddings = layer(src_embeddings)
+        
+        ### Generate Target ###
+        for i in range(max_len):
+            
+            tgt_embeddings = self.encodings.forward_tgt(tgt_ids)
+            for layer in self.decoder:
+                tgt_embeddings = layer(src_embeddings, 
+                                       tgt_embeddings)
+            
+            ### Only Need Last Timestep ###
+            tgt_embeddings = tgt_embeddings[:, -1]
 
-# src_mask = torch.ones(2,128)
-# src_mask[:, -32:] = 0
-# tgt_mask = torch.ones(2,256)
-# tgt_mask[:, -64:] = 0
+            ### Project to Tokens ###
+            pred = self.head(tgt_embeddings)
+            pred = pred.argmax(axis=-1).unsqueeze(0)
+            tgt_ids = torch.cat([tgt_ids,pred], axis=-1)
 
-# model = Transformer(config=TransformerConfig())
-# output = model(src, tgt, src_mask, tgt_mask)
-# print(output.shape)
+            if torch.all(pred == tgt_end_id):
+                break
+        
+        return tgt_ids.squeeze().cpu().tolist() 
+            
+            
+def _init_weights_(module):
+
+    """
+    Simple weight intialization taken directly from the huggingface
+    `modeling_roberta.py` implementation! 
+    """
+    if isinstance(module, nn.Linear):
+        module.weight.data.normal_(mean=0.0, std=0.02)
+        if module.bias is not None:
+            module.bias.data.zero_()
+    elif isinstance(module, nn.Embedding):
+        module.weight.data.normal_(mean=0.0, std=0.02)
+        if module.padding_idx is not None:
+            module.weight.data[module.padding_idx].zero_()
+    elif isinstance(module, nn.LayerNorm):
+        module.bias.data.zero_()
+        module.weight.data.fill_(1.0)
+
+if __name__ == "__main__":
+    src = torch.randint(0,1000, (1,128)).to("cuda")
+    config = TransformerConfig()
+    model = Transformer(config)
+    model = model.to("cuda")
+
+    model.inference(src)
         
         
 
