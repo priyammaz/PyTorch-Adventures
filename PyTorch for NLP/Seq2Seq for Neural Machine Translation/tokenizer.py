@@ -1,5 +1,6 @@
 import os
 import glob
+import argparse
 from tokenizers import Tokenizer
 from tokenizers.trainers import WordPieceTrainer
 from tokenizers.models import WordPiece
@@ -15,6 +16,26 @@ special_token_dict = {"unknown_token": "[UNK]",
                       "end_token": "[EOS]"}
 
 def train_tokenizer(path_to_data_root):
+
+    """
+    We need to train a WordPiece tokenizer on our french data (as our regular tokenizers are mostly for English!)
+    I set all the special tokens we need above:
+        unkown_token: Most important incase tokenizer sees a token not a part of our original token set
+        pad_token: Padding for the french text
+        start_token: Prepend all french text with start token so the decoder has an input to start generating from
+        end_token: Append all french text with end token so decoder knowsn when to stop generating anymore. 
+
+    The only thing in here to keep in mind is the normalizers. There are some issues with how the same letter can 
+    be represented in Unicode, so we have to do unicode normalization.
+
+    For example: 
+
+    "é" can be written as either (\u00E9) as a single unicode
+    "é" can also be written as "e" + ' where we break the accents off of the e and write as a sequence of 2 unicode characters \u0065\u0301
+
+    We want all our data to be in one or the either for some consistency, so we will be using NMC which tries to represent these characters
+    with just a single unicode
+    """
     
     ### Prepare Tokenizer Definition ###
     tokenizer = Tokenizer(WordPiece(unk_token=special_token_dict["unknown_token"]))
@@ -30,6 +51,11 @@ def train_tokenizer(path_to_data_root):
     tokenizer.save("trained_tokenizer/french_wp.json")
 
 class FrenchTokenizer:
+
+    """
+    This is just a wrapper on top of the trained tokenizer to put together all the functionality we need 
+    for encoding and decoding
+    """
     
     def __init__(self, path_to_vocab, truncate=False, max_length=512):
         
@@ -88,8 +114,19 @@ class FrenchTokenizer:
         return decoded
         
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Tokenizer Prep")
+
+    parser.add_argument(
+        "--path_to_data_root", 
+        required=True, 
+        help="Path to where you want to save the final tokenized dataset",
+        type=str
+    )
+
+    args = parser.parse_args()
+
     path_to_data_root = "/mnt/datadrive/data/machine_translation/english2french/"
-    train_tokenizer(path_to_data_root)
+    train_tokenizer(args.path_to_data_root)
 
     tokenizer = FrenchTokenizer("trained_tokenizer/french_wp.json")
     sentence = "Héllo world!"

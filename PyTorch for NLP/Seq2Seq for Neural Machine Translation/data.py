@@ -8,6 +8,17 @@ from datasets import load_from_disk
 
 def TranslationCollator(src_tokenizer, tgt_tokenizer):
 
+    """
+    Collate Function of Seq2Seq Translation:
+
+    Returns:
+        src_input_ids: Batch of tokenized english padded with its pad token (src_pad_token)
+        src_pad_mask: Which tokens in our tensor are padding (so we can ignore them in attention)
+        tgt_input_ids: Given all our tgt_ids, we set up a causal tgt input by taking all but the last index
+        tgt_pad_mask: Which tokens in our tgt_input_ids are padding tokens (tgt_pad_token)
+        tgt_outputs: Next token prediction of the tgt_input_ids
+    """
+
     def _collate_fn(batch):
 
         src_ids = [torch.tensor(i["src_ids"]) for i in batch]

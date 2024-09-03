@@ -223,7 +223,7 @@ while train:
         ### Compute Gradients ###
         accelerator.backward(loss)
 
-        ### Compute Accuracy (ignoring padding labels) ###
+        ### Compute Accuracy (ignoring -100 padding labels) ###
         output = output.argmax(axis=-1)
         mask = (tgt_outputs != -100)
         output = output[mask]
@@ -294,7 +294,7 @@ while train:
                     ### Compute Loss ###
                     loss = loss_fn(output, tgt_outputs)
 
-                    ### Compute Accuracy ###
+                    ### Compute Accuracy (make sure to ignore -100 targets) ###
                     output = output.argmax(axis=-1)
                     mask = (tgt_outputs != -100)
                     output = output[mask]

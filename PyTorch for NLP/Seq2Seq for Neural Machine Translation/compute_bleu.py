@@ -13,6 +13,16 @@ def compute_bleu(path_to_raw_data,
                  path_to_model_safetensors,
                  rand_selected_for_scoring=None):
 
+    """
+    A typical metric to evaluate translation performance if BLEU. Here we 
+    iterate through the testing portion of our prepared dataset to see
+    the score we get. 
+
+    This takes some time (as I never created a batch_inference script) so
+    you can take a random sample of the testing data by specifying how many 
+    samples you want in rand_selected_for_scoring.
+
+    """
     ### Load Model ###
     config = TransformerConfig()
     model = Transformer(config)

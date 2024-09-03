@@ -23,6 +23,14 @@ class TransformerConfig:
 
 class PositionalEncoding(nn.Module):
 
+    """
+    Sin/Cosine (non-learnable) encodings proposed in Attention is All You Need
+
+    Args:
+        max_len: Maximum number of tokens possible in a sequence
+        embed_dim: Embedding dimension of each token
+    """
+
     def __init__(self, max_len, embed_dim, requires_grad=False):
         super(PositionalEncoding, self).__init__()
 
@@ -59,6 +67,13 @@ class PositionalEncoding(nn.Module):
         return x
 
 class Embeddings(nn.Module):
+
+    """
+    All the embeddings we need for the source and target langauge. Both source and target need:
+
+    - Token Embeddings
+    - Positional Embedings
+    """
     
     def __init__(self, config):
         super(Embeddings, self).__init__()
@@ -214,6 +229,10 @@ class FeedForward(nn.Module):
         return x
     
 class TransformerEncoderLayer(nn.Module):
+
+    """
+    Stacks together a Self-Attention module and MLP Layer
+    """
     
     def __init__(self, config):
         super(TransformerEncoderLayer, self).__init__()
@@ -235,6 +254,11 @@ class TransformerEncoderLayer(nn.Module):
         return x
     
 class TransformerDecoderLayer(nn.Module):
+    
+    """
+    Stacks together a Causal-Attention of our target language, Cross Attention with encoded source language, 
+    and a MLP layer
+    """
 
     def __init__(self, config):
         super(TransformerDecoderLayer, self).__init__()
@@ -265,6 +289,10 @@ class TransformerDecoderLayer(nn.Module):
 
 class Transformer(nn.Module):
 
+    """
+    Final Transformer proposed in Attention is All You Need
+    """
+    
     def __init__(self, config):
         super(Transformer, self).__init__()
         
