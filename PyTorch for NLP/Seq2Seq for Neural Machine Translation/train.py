@@ -34,14 +34,14 @@ tgt_tokenizer =  FrenchTokenizer("trained_tokenizer/french_wp.json")
 src_tokenizer = AutoTokenizer.from_pretrained("google-bert/bert-base-uncased")
 
 ### Dataloader Config ###
-path_to_data = "/mnt/datadrive/data/machine_translation/english2french/tokenized_french2english_corpus"
-batch_size = 256
-gradient_accumulation_steps = 4
+path_to_data = "/mnt/datadrive/data/machine_translation/english2french/tokenized_english2french_corpus"
+batch_size = 128
+gradient_accumulation_steps = 2
 num_workers = 16
 
 ### Training Config ###
 learning_rate = 1e-4
-training_steps = 200000
+training_steps = 150000 
 warmup_steps = 2000
 scheduler_type = "cosine"
 evaluation_steps = 2500
@@ -252,7 +252,7 @@ while train:
                      accumulate_loss = torch.mean(accelerator.gather_for_metrics(accumulate_loss))
                      accuracy = torch.mean(accelerator.gather_for_metrics(accuracy))
 
-                log = {"train_loss": loss,
+                log = {"train_loss": accumulate_loss,
                        "training_acc": accuracy,
                        "learning_rate": scheduler.get_last_lr()[0]}
                 
@@ -325,7 +325,7 @@ while train:
                 
                 ### Log and Save Model ###
                 accelerator.log(log, step=completed_steps)
-                accelerator.save_state(os.path.join(working_directory, f"checkpoint_{completed_steps}"))
+                accelerator.save_state(os.path.join(path_to_experiment, f"checkpoint_{completed_steps}"))
 
                 ### Testing Sentence ###
                 if accelerator.is_main_process:
@@ -344,7 +344,7 @@ while train:
 
             if completed_steps >= training_steps:
                 train = False
-                accelerator.save_state(os.path.join(working_directory, f"final_checkpoint"))
+                accelerator.save_state(os.path.join(path_to_experiment, f"final_checkpoint"))
                 break
                 
             ### Iterate Completed Steps ###

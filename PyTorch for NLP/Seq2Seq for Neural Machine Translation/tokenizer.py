@@ -88,8 +88,8 @@ class FrenchTokenizer:
         return decoded
         
 if __name__ == "__main__":
-    # path_to_data_root = "/mnt/datadrive/data/machine_translation/english2french/"
-    # train_tokenizer(path_to_data_root)
+    path_to_data_root = "/mnt/datadrive/data/machine_translation/english2french/"
+    train_tokenizer(path_to_data_root)
 
     tokenizer = FrenchTokenizer("trained_tokenizer/french_wp.json")
     sentence = "Héllo world!"
