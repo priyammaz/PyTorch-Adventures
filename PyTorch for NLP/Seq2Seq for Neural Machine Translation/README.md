@@ -64,6 +64,9 @@ This will create in your ```data_root``` two folders: ```raw_english2french_corp
 ### Train Model 
 Now that all our data is ready to go, we can train our model! We will be using Huggingface Accelerate for multi-GPU training. At the start of the training script, there are some arguments you can fill in to scale the model however you like! The main thing you need to change is the ```path_to_data```, where you just want to provide the path to the ```tokenized_english2french_corpus``` created earlier. 
 
+```
+accelerate launch train.py
+```
 The results of this training script for 150K Steps can be found [here](https://api.wandb.ai/links/exploratorydataadventure/nv5i9c3z)
 
 ### Compute BLEU Score
