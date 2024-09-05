@@ -6,6 +6,9 @@ from typing import Optional, Tuple, Union
 import torch 
 import torch.nn as nn
 
+import warnings
+warnings.filterwarnings("ignore")
+
 @dataclass
 class Wav2Vec2ForPreTrainingOutput:
 
@@ -171,7 +174,7 @@ def compute_span_mask(shape: tuple,
     if attention_mask is None:
         sequence_lengths = [total_sequence_length] * batch_size
     else:
-        ### Attention mask is (B,L,L), we just need to add up the number of nonmasked tokens in each row, once per batch! ###
+        ### Attention mask is (B,L), we just need to add up the number of nonmasked tokens in each row, once per batch! ###
         sequence_lengths = attention_mask.sum(axis=-1).to(torch.int).tolist()
 
     ### Sample The Starting Indexes of Spans ###
@@ -183,7 +186,7 @@ def compute_span_mask(shape: tuple,
 
         ### Sample Potential Starting Indexes for Span Masking ###
         sampled_starting_idx = (torch.rand(length) <= mask_prob).nonzero()
-
+        
         ### Sanity Check that we have atleast minimum_spans ###
         if len(sampled_starting_idx) < min_masks:
             sampled_starting_idx = torch.randint(low=0, high=length, size=(min_masks,1))
@@ -191,7 +194,7 @@ def compute_span_mask(shape: tuple,
         ### Compute Full Span Indexes ###
         span_offsets = torch.arange(mask_length)
         spans = sampled_starting_idx + span_offsets
-
+        
         ### Convert Each Span to A Single Vector of Indexes to Mask ###
         spans = spans.flatten()
 
@@ -273,7 +276,7 @@ def sample_negative_indices(features_shape, num_negatives, mask_time_indices):
         num_masked = batch_span_mask.sum()
         feature_index = np.expand_dims(np.arange(num_masked),-1)
         feature_index = np.repeat(feature_index, num_negatives, axis=-1)
-
+   
         ### Sample Indicies (Notice, we will sample index 0 to num_masked - 1) ###
         ### This is so if there is an overlap between sampled index and the positive (true) index ###
         ### We can just add 1, but keep the highest index to num_masked ###
@@ -300,3 +303,28 @@ def sample_negative_indices(features_shape, num_negatives, mask_time_indices):
 
     return sampled_negatives
 
+if __name__ == "__main__":
+
+    ### Prepare some Random Data ###
+    seq_lens = [25000, 32000]
+    
+    data = [torch.randn(l) for l in seq_lens]
+    attention_mask = [torch.ones(l) for l in seq_lens]
+
+    data = torch.nn.utils.rnn.pad_sequence(data, padding_value=0.0, batch_first=True)
+    attention_mask = torch.nn.utils.rnn.pad_sequence(attention_mask, padding_value=0, batch_first=True)
+
+    ### Test Span Masking / Sampling Pipeline ###
+    config = Wav2Vec2Config()
+    
+    sub_attention_mask = compute_sub_attention_mask(config, attention_mask)
+    span_mask = compute_span_mask(shape=tuple(sub_attention_mask.shape),
+                                  attention_mask=sub_attention_mask)
+    negatives = sample_negative_indices(features_shape=tuple(sub_attention_mask.shape), 
+                                        num_negatives=5,
+                                        mask_time_indices=span_mask)
+
+   
+
+
+    
