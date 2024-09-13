@@ -72,6 +72,8 @@ def compute_bleu(path_to_raw_data,
 
 
 if __name__ == "__main__":
+
+    
     path_to_raw_data = "/mnt/datadrive/data/machine_translation/english2french/raw_english2french_corpus"
     path_to_model_safetensor = "work_dir/Seq2Seq_Neural_Machine_Translation/checkpoint_150000/model.safetensors"
     compute_bleu(path_to_raw_data, path_to_model_safetensor)
