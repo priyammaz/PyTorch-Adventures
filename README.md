@@ -102,7 +102,7 @@ There are a few other datasets that we will use but are inconsistent to automati
 
 - ### Diffusion ##
   - [**Intro to Diffusion**](PyTorch%20for%20Generation/Diffusion/Intro%20to%20Diffusion/) &nbsp; [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1KBupTiAId1LO67IcM-yn3xkK81aj06sG?usp=sharing)
-  - **Text-Conditional Diffusion with Classifier Free Guidance**
+  - [**Text-Conditional Diffusion with Classifier Free Guidance**](PyTorch%20for%20Generation/Diffusion/Conditional%20Diffusion/)
   - **Latent-Space Diffusion**
 
 ## MultiModal AI ##
