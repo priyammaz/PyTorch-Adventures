@@ -1,5 +1,4 @@
-## Intro to PyTorch: Exploring the Mechanics &nbsp; [![button](../../src/visuals/play_button.png)](https://www.youtube.com/watch?v=zQ-OQXBJcyw)  &nbsp; [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1YQanR0ME7ThsU9YwLzXhGvYGOdH2ErSa?usp=sharing)
-
+## Intro to PyTorch: Exploring the Mechanics &nbsp; [<img src="../../src/visuals/x_logo.png" alt="drawing" style="width:25px;"/>](https://x.com/data_adventurer/status/1834073826612707543)&nbsp; [<img src="../../src/visuals/play_button.png" alt="drawing" style="width:40px;"/>](https://youtu.be/d86lJxKInYg?feature=shared) &nbsp; [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1YQanR0ME7ThsU9YwLzXhGvYGOdH2ErSa?usp=sharing)
 Deep Learning has revolutionized AI architectures, and it is vital to learn the tools to build these models! The reason we will be using PyTorch over the many other Deep Learning Frameworks out there is simply due to its 
 current popularity! Obviously things change with time, but if you can build models with PyTorch the other frameworks
 should come easy! All the following visuals were pulled from [here](https://www.assemblyai.com/blog/pytorch-vs-tensorflow-in-2023/)
