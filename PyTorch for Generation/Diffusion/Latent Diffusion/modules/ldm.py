@@ -136,10 +136,12 @@ class LDM(nn.Module):
                   text_conditioning=None, 
                   text_attention_mask=None,
                   class_conditioning=None, 
-                  cfg_weight=1.0,
                   device="cuda",
                   path_to_save="gen.png"):
-        
+        """
+        We assume single sample generation in inference!
+        """
+
         if text_conditioning is not None:
 
             model = CLIPTextModel.from_pretrained(self.config.text_conditioning_hf_model).to(device)
@@ -155,6 +157,12 @@ class LDM(nn.Module):
             
             with torch.no_grad():
                 text_conditioning = model(input_ids).last_hidden_state
+
+        else:
+            
+            ### If conditioning is enabled but we dont pass a prompt then we do unconditional generation ###
+            if self.config.text_conditioning:
+                text_conditioning = self.text_encoder.null_token
 
         ### Compute Latent Dimension Shape ###
         latent_resolution = self.config.img_size // 2**(len(self.config.vae_channels_per_block)-1)
@@ -184,6 +192,8 @@ class LDM(nn.Module):
         ### Decode Latent Back to Image Space ###
         images = self._vae_decode_images(image.to(device))
 
-        save_generated_images(images,
-                              path_to_save=path_to_save)    
+        if path_to_save is not None:
+            save_generated_images(images,
+                                path_to_save=path_to_save)    
 
+        return images

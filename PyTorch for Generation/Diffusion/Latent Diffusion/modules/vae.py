@@ -564,7 +564,7 @@ class VAE(EncoderDecoder):
             else:
                 scale_factor = 1.0
 
-        x = x / scale_factor
+        z = z / scale_factor
 
         ### Decode Latent ###
         x = self.forward_dec(z)

@@ -73,7 +73,7 @@ class TextConditionalEmbeddings(nn.Module):
 
         self.pre_encoded_text = pre_encoded_text
 
-        if pre_encoded_text:
+        if not pre_encoded_text:
             self.text_encoder = CLIPTextModel.from_pretrained(
                    text_conditioning_hf_model
             )

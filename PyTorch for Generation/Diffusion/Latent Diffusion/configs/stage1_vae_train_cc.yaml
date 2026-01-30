@@ -1,8 +1,5 @@
 training_args:
 
-  ### Configs for Models ###
-  vae_config: configs/vae.yaml                  # VAE Config File
-
   ### Discriminator Config ###
   use_patchgan: True                            # Do you want to use PatchGAN?
   disc_start_dim: 64                            # PatchGAN starting channel dim

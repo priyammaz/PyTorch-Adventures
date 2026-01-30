@@ -155,18 +155,19 @@ if use_disc:
 
 ### Get DataLoader ###
 mini_batchsize = training_config["per_gpu_batch_size"] // training_config["gradient_accumulations_steps"]
-dataset = get_dataset(dataset=args.dataset,
-                      path_to_data=args.path_to_dataset,
-                      num_channels=vae_config["in_channels"],
-                      img_size=vae_config["img_size"],
-                      random_resize=training_config["random_resize"],
-                      interpolation=training_config["interpolation"],
-                      return_caption=False)
+dataset, collate_fn = get_dataset(dataset=args.dataset,
+                                 path_to_data=args.path_to_dataset,
+                                 num_channels=vae_config["in_channels"],
+                                 img_size=vae_config["img_size"],
+                                 random_resize=training_config["random_resize"],
+                                 interpolation=training_config["interpolation"],
+                                 return_caption=False)
 
 accelerator.print("Number of Training Samples:", len(dataset))
 
 dataloader = DataLoader(dataset, 
                         batch_size=mini_batchsize,
+                        collate_fn=collate_fn,
                         pin_memory=training_config["pin_memory"],
                         num_workers=training_config["num_workers"],
                         shuffle=True)

@@ -342,6 +342,14 @@ Also, you can optionally edit the file [sample_text_cond_prompts.txt](inputs/sam
 
 ### Results
 
+To quickly generate an image you can use the following for the CelebHQ run:
+
+```bash
+python inference_ldm.py 
+  --model_config "configs/ldm.yaml" \
+  --path_to_weights "work_dir/diffusion_celebahq/model.safetensors" \
+  --training_dataset "celebahq"
+```
 #### CelebAHQ
 
 Lets first see what unconditional generation looks like! 
@@ -353,6 +361,18 @@ Lets first see what unconditional generation looks like!
 Im pretty happy with these!
 
 #### Conceptual Captions
+
+To quickly generate an image you can use the following for the Conceptual Captions run:
+
+```bash
+python inference_ldm.py \
+  --model_config "configs/ldm.yaml" \
+  --path_to_weights "work_dir/diffusion_cc/model.safetensors" \
+  --text_conditional \
+  --training_dataset "conceptual_captions" \
+  --prompt "A beautiful sunset at the beach"
+
+```
 
 What about when we provide some prompts? Lets try the following text prompts:
 

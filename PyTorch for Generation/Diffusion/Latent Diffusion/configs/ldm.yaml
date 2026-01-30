@@ -33,7 +33,7 @@ unet:
     - AttnDown
     - Down
 
-  mid_block_types: AttnMid
+  mid_block_types: None # Should have been AttnMid, but forgot to change when training!
 
   up_block_types: 
     - Up
