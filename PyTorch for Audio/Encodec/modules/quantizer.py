@@ -149,6 +149,7 @@ class EuclideanCodebook(nn.Module):
         init_fn = uniform_init if not kmeans_init else torch.zeros
         embed = init_fn(codebook_size, dim)
 
+        ### Save as buffers so its saved with the model weights ###
         self.register_buffer("inited", torch.Tensor([not kmeans_init]))  # have we initialized?
         self.register_buffer("cluster_size", torch.zeros(codebook_size)) # How many samples assigned to each cluster?
         self.register_buffer("embed", embed)                             # Store the embeddings
@@ -278,6 +279,7 @@ class EuclideanCodebook(nn.Module):
         """given indexes grab them from the embed matrix"""
         return F.embedding(embed_ind, self.embed)
 
+    @torch.no_grad()
     def encode(self, x):
         
         # B x L x E
@@ -294,11 +296,12 @@ class EuclideanCodebook(nn.Module):
 
         return embed_ind
     
+    @torch.no_grad()
     def decode(self, embed_ind):
         return self.dequantize(embed_ind)
     
     def forward(self, x):
-        
+        """forward should only be used during training time as it updates embeddings!"""
         ### Store original data attributes
         shape, dtype = x.shape, x.dtype
 
@@ -412,13 +415,15 @@ class VectorQuantization(nn.Module):
                                            decay=decay, epsilon=epsilon, 
                                            threashold_ema_dead_code=threshold_ema_dead_code, 
                                            accelerator=accelerator)
-        
+    
+    @torch.no_grad()
     def encode(self, x):
         x = einops.rearrange(x, "b d n -> b n d")
         x = self.proj_in(x)
         embed_in = self._codebook.encode(x)
         return embed_in
     
+    @torch.no_grad()
     def decode(self, embed_ind):
         quantize = self._codebook.decode(embed_ind)
         quantize = self.proj_out(quantize)
@@ -426,7 +431,7 @@ class VectorQuantization(nn.Module):
         return quantize
     
     def forward(self, x):
-        
+        """forward should only be used during training time as it updates embeddings!"""
         device = x.device
 
         # Set correct device
@@ -464,8 +469,36 @@ class ResidualVectorQuantization(nn.Module):
             [VectorQuantization(**kwargs) for _ in range(num_quantizers)]
         )
 
-    def forward(self, x, n_q=None):
+    @torch.no_grad()
+    def encode(self, x, n_q=None):
         
+        residual = x
+        all_indices = []
+        n_q = n_q or len(self.layers)
+        
+        for layer in self.layers[:n_q]:
+            indices = layer.encode(residual)
+            quantized = layer.decode(indices)
+            residual = residual - quantized
+            all_indices.append(indices)
+
+        out_indices = torch.stack(all_indices)
+        return out_indices
+
+    @torch.no_grad()
+    def decode(self, q_indices):
+
+        quantized_out = torch.tensor(0.0, device=q_indices.device)
+
+        for i, indices in enumerate(q_indices):
+            layer = self.layers[i]
+            quantized = layer.decode(indices)
+            quantized_out = quantized_out + quantized
+            
+        return quantized_out
+    
+    def forward(self, x, n_q=None):
+        """forward should only be used during training time as it updates embeddings!"""
         quantized_out = 0.0
         residual = x
 
@@ -493,32 +526,6 @@ class ResidualVectorQuantization(nn.Module):
         out_indices = torch.stack(all_indices)
         
         return quantized_out, out_indices, out_losses
-    
-    def encode(self, x, n_q=None):
-        
-        residual = x
-        all_indices = []
-        n_q = n_q or len(self.layers)
-        
-        for layer in self.layers[:n_q]:
-            indices = layer.encode(residual)
-            quantized = layer.decode(indices)
-            residual = residual - quantized
-            all_indices.append(indices)
-
-        out_indices = torch.stack(all_indices)
-        return out_indices
-
-    def decode(self, q_indices):
-
-        quantized_out = torch.tensor(0.0, device=q_indices.device)
-
-        for i, indices in enumerate(q_indices):
-            layer = self.layers[i]
-            quantized = layer.decode(indices)
-            quantized_out = quantized_out + quantized
-            
-        return quantized_out
 
 def test_kmeans():
     """helper method to just test our kmeans out!"""

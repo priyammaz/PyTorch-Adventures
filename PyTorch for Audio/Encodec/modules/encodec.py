@@ -66,9 +66,9 @@ class EncodecModel(nn.Module):
         if channels > 1:
             mono = x.mean(dim=1, keepdim=True)
 
-        volume = mono.pow(2).mean(dim=1, keepdim=True).sqrt()
+        volume = mono.pow(2).mean(dim=2, keepdim=True).sqrt()
         scale = 1e-8 + volume
-        
+
         x = x / scale
 
         return x, scale
@@ -114,15 +114,59 @@ class EncodecModel(nn.Module):
                 "decoded": decoded}
 
     @torch.no_grad()
-    def tokenize(self, x):
-        pass
+    def tokenize(self, x):  
+
+        input_len = x.shape[-1]
+        
+        ### Normalize input data ###
+        x, scale = self.normalize(x)
+     
+        ### Encode frames ###
+        encoded = self.encoder(x)
+
+        ### Pass through quantizer ###
+        tokens = self.quantizer.encode(encoded)
+
+        ### tokens is returned in [num_codebooks x batch x seq_len] ###
+
+        return tokens, scale
+        
 
     @torch.no_grad()
-    def decode(self, x):
-        pass
+    def decode(self, indices, scale, max_len=None):
+        """indices is (nq x b x l)"""
+
+        quantized = self.quantizer.decode(indices)
+        decoded = self.decoder(quantized)
+        decoded = self.denormalize(decoded, scale)
+
+        if max_len is not None:
+            decoded = decoded[:, :, :max_len]
+        
+        ### Final outputs can only be between -1 and 1 as that is the ###
+        ### value range to save our audio ###
+        decoded = torch.clamp(decoded, -1.0, 1.0)
+
+        return decoded
+    
+    @torch.no_grad()
+    def passthrough(self, x):
+
+        """quick method to just pass in audio and return the final reconstruction"""
+
+        tokens, scale = self.tokenize(x)
+
+        reconstruction = self.decode(tokens, scale, max_len=x.shape[-1])
+
+        return reconstruction
+        
 
 if __name__ == "__main__":
-    rand = torch.randn(2,1,24000)
+    rand = torch.randn(2,1,5)
     model = EncodecModel()
-    model(rand)
+    out, scale = model.normalize(rand)
+    denormed = model.denormalize(out, scale)
 
+    print(rand.mean(), rand.std())
+    print(out.mean(), out.std())
+    print(denormed.mean(), denormed.std())

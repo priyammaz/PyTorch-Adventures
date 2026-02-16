@@ -1,17 +1,24 @@
 accelerate launch train.py \
-    --experiment_name encodec \
+    --experiment_name encodec_trainer_ljspeech \
     --working_directory work_dir \
     --path_to_train_manifest data/train.txt \
     --path_to_val_manifest data/test.txt \
+    --sampling_rate 24000 \
     --segment_length 24000 \
     --training_epochs 100 \
     --warmup_epochs 5 \
     --console_out_iters 5 \
     --wandb_log_iters 5 \
-    --checkpoint_epochs 50 \
+    --checkpoint_epochs 10 \
     --batch_size 12 \
     --learning_rate 0.0003 \
     --disc_learning_rate 0.0003 \
+    --disc_update_prob 0.666 \
+    --time_loss 0.1 \
+    --frequency_loss 1 \
+    --feature_loss 3 \
+    --generator_loss 3 \
     --beta1 0.5 \
     --beta2 0.9 \
-    --num_workers 16
+    --num_workers 16 \
+    --log_wandb

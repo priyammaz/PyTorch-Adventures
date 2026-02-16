@@ -3,7 +3,7 @@ Quick dataset script!
 """
 import torch
 import torchaudio
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import Dataset
 import warnings
 warnings.filterwarnings("ignore")
 
@@ -26,9 +26,7 @@ class AudioDataset(Dataset):
         # Read all audio file paths from the text file
         with open(path_to_txt, 'r') as f:
             self.audio_paths = [line.strip() for line in f if line.strip()]
-        
-        print(f"Loaded {len(self.audio_paths)} audio files from {path_to_txt}")
-
+            
     def __len__(self):
         return len(self.audio_paths)
     

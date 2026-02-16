@@ -86,9 +86,11 @@ class MultiScaleSTFTDiscriminator(nn.Module):
     Multi-Scale STFT (MS-STFT) discriminator.
     """
     def __init__(self, filters=32, in_channels=1, out_channels=1,
-                 n_ffts=[1024, 2048, 512], hop_lengths=[256, 512, 128],
-                 win_lengths=[1024, 2048, 512], **kwargs):
+                 n_ffts=[512, 1024, 2048], hop_lengths=[128, 256, 512],
+                 win_lengths=[512, 1024, 2048], **kwargs):
+        
         super().__init__()
+        
         assert len(n_ffts) == len(hop_lengths) == len(win_lengths)
         self.discriminators = nn.ModuleList([
             DiscriminatorSTFT(filters, in_channels=in_channels, out_channels=out_channels,
@@ -98,7 +100,7 @@ class MultiScaleSTFTDiscriminator(nn.Module):
         self.num_discriminators = len(self.discriminators)
 
     def forward(self, x):
-        
+
         logits = []
         fmaps = []
 
