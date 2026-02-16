@@ -123,6 +123,8 @@ accelerator.print(f"{'Training Samples':<25}: {len(trainset):>15,}")
 accelerator.print(f"{'Testing Samples':<25}: {len(testset):>15,}")
 accelerator.print(f"{'Sampling Rate':<25}: {args.sampling_rate:>15,}")
 accelerator.print(f"{'Segment Size':<25}: {args.segment_length:>15,}")
+accelerator.print(f"{'Effective Batch Size':<25}: {args.batch_size * accelerator.num_processes:>15,}")
+accelerator.print(f"{'Num GPUs':<25}: {accelerator.num_processes:>15,}")
 accelerator.print("-" * 60)
 accelerator.print(f"{'Model Parameters':<25}: {count_params(model):>15,}")
 accelerator.print(f"{'Discriminator Parameters':<25}: {count_params(disc_model):>15,}")
@@ -200,7 +202,8 @@ else:
 
 ### Train Model ###
 for epoch in range(starting_epoch, args.training_epochs):
-
+    
+    accelerator.print(f"Epoch {epoch}")
     model.train()
 
     log = {"accum_test_time_loss": [], "accum_test_freq_loss": []}
@@ -392,6 +395,9 @@ for epoch in range(starting_epoch, args.training_epochs):
                  "test_freq_loss": train_freq_loss},
                  step=completed_steps
             )
+    
+    ### Reset Log ###
+    log = {"accum_test_time_loss": [], "accum_test_freq_loss": []}
 
     ### Inference our cached audio every epoch ###
     if accelerator.is_main_process:
