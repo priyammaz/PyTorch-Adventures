@@ -1,0 +1,17 @@
+accelerate launch train.py \
+    --experiment_name encodec \
+    --working_directory work_dir \
+    --path_to_train_manifest data/train.txt \
+    --path_to_val_manifest data/test.txt \
+    --segment_length 24000 \
+    --training_epochs 100 \
+    --warmup_epochs 5 \
+    --console_out_iters 5 \
+    --wandb_log_iters 5 \
+    --checkpoint_epochs 50 \
+    --batch_size 12 \
+    --learning_rate 0.0003 \
+    --disc_learning_rate 0.0003 \
+    --beta1 0.5 \
+    --beta2 0.9 \
+    --num_workers 16
