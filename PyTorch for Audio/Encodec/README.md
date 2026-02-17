@@ -22,5 +22,22 @@ The main part of this architecture is the quantizer, and for most speech applica
 
 EnCodec has upto 32 codebooks in its implementation as it is trained on a wide variety of audio types. Because we will mainly be focusing on Speech, most architectures today for that task typically use only 8 codebooks, each with 1024 codes
 
+Each codebook in the RVQ is initialized with KMeans and then updated with Exponential Moving Averages. 
+
+### Losses
+
+As you can imagine there will be a variety of loss functions being used to train this!
+
+1) **Time Domain Loss**: Simple MSE between the input and reconstruted audio
+2) **Frequency Domain Loss**: MSE and L1 between the Mel spectrograms of the input and reconstructed audios. To additionally help with the uncertainty principle (time vs frequency resolutions), we compute this loss on a variety of spectrograms with different window sizes
+3) **GAN Loss**: A discriminator looks at the real and imaginary components of spectrograms (with different window sizes) for real and generated audio. The loss function used is the Hinge loss. 
+4) **Commitment Loss**: We want to ensure that the output of the encoder is close to the codes in the codebook. 
+
+### Dynamic Loss Balancing
+
+As you can imagine, making sure the effective gradient contribution from each of these losses can be hard to balance. So we use the proposed method from the EnCodec paper for dynamic loss balancing! 
+
+The main idea is that we rescale the gradients from each of the losses to match the proportion of contributions we want. 
+
 ## Lets Train a Model!
 

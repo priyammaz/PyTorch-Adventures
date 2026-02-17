@@ -1,5 +1,5 @@
 accelerate launch train.py \
-    --experiment_name encodec_trainer_ljspeech \
+    --experiment_name encodec_trainer_libri \
     --working_directory work_dir \
     --path_to_train_manifest data/train.txt \
     --path_to_val_manifest data/test.txt \
