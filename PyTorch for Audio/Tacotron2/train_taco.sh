@@ -9,7 +9,7 @@ accelerate launch train_taco.py \
     --console_out_iters 5 \
     --wandb_log_iters 5 \
     --checkpoint_epochs 25 \
-    --batch_size 32 \ # Batch size is per device (multiplied by num gpus)
+    --batch_size 32 \
     --learning_rate 0.001 \
     --weight_decay "1e-6" \
     --adam_eps "1e-6" \
