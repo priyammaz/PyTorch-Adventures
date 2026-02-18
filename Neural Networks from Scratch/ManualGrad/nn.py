@@ -34,65 +34,6 @@ class GradTensor:
 ### STANDARD LAYERS ###
 #######################
 
-# class Linear(GradLayer):
-#     """
-#     Basic Implementation of the Linear Layer following nn.Linear
-#     y = xW^T + b
-#     """
-#     def __init__(self, in_features, out_features, bias=True):
-#         self.in_features = in_features
-#         self.out_features = out_features
-
-#         ### Initialization to Match nn.Linear ###
-#         k = 1 / self.in_features
-
-#         self.weight = GradTensor(
-#             np.random.uniform(
-#                 low=-math.sqrt(k),
-#                 high=math.sqrt(k), 
-#                 size=(in_features, out_features)
-#             )
-#         )
-
-#         self.bias = None
-#         if bias:
-#             self.bias = GradTensor(
-#                 np.random.uniform(
-#                     low=-math.sqrt(k), 
-#                     high=math.sqrt(k), 
-#                     size=(1, out_features)
-#                 )
-#             )
-
-#     def forward(self, x):
-#         # For backprop, dL/dW will need X^t, so save X for future use 
-#         self.x = x
-
-#         # X has shape (B x in_features), w has shape (in_feature x out_features)
-#         x = x @ self.weight.params
-
-#         if self.bias is not None:
-#             x = x + self.bias.params
-
-#         return x
-    
-#     def backward(self, output_grad):
-
-#         ### Derivative w.r.t. W: X^t @ output_grad 
-#         self.weight.grad = self.x.T @ output_grad
-
-#         ### Derivative of Bias is just the output grad summed along batch 
-#         if self.bias is not None:
-#             self.bias.grad = output_grad.sum(axis=0, keepdims=True)
-
-#         ### We need derivative w.r.t input for the next step 
-#         input_grad = output_grad @ self.weight.params.T
-
-#         return input_grad
-    
-#     def __repr__(self):
-#         return f"Linear(in_features={self.in_features}, out_features={self.out_features}, bias={self.bias is not None})"
-
 class Linear(GradLayer):
     """
     Optimized Linear layer for CuPy
@@ -102,29 +43,23 @@ class Linear(GradLayer):
         self.in_features = in_features
         self.out_features = out_features
 
-        k = 1 / in_features
         self.weight = GradTensor(
-            np.random.uniform(
-                low=-np.sqrt(k),
-                high=np.sqrt(k),
+            np.random.normal(
+                scale=0.02,
                 size=(in_features, out_features)
             )
         )
 
         if bias:
             self.bias = GradTensor(
-                np.random.uniform(
-                    low=-np.sqrt(k),
-                    high=np.sqrt(k),
-                    size=(1, out_features)
-                )
+                np.zeros((1, out_features))
             )
         else:
             self.bias = None
 
     def forward(self, x):
         # Ensure contiguous float32 arrays
-        self.x = np.asarray(x, dtype=np.float32, order='C')
+        self.x = x if x.flags['C_CONTIGUOUS'] and x.dtype == np.float32 else np.ascontiguousarray(x, dtype=np.float32)
 
         out = np.empty((self.x.shape[0], self.out_features), dtype=np.float32)
         np.matmul(self.x, self.weight.params, out=out)
@@ -135,7 +70,7 @@ class Linear(GradLayer):
         return out
 
     def backward(self, grad_output):
-        grad_output = np.asarray(grad_output, dtype=np.float32, order='C')
+        grad_output = grad_output if grad_output.flags['C_CONTIGUOUS'] and grad_output.dtype == np.float32 else np.ascontiguousarray(grad_output, dtype=np.float32)
 
         # Grad w.r.t weight: X^T @ grad_output
         grad_W = np.empty_like(self.weight.params)
@@ -556,7 +491,7 @@ class Dropout(Operation):
             # Create mask of zeros and ones
             self.mask = (np.random.rand(*x.shape) >= self.p) 
             ### Scaling so mask divides all non-masked values by 1/p to maintain
-            ### the overall expected value of the tensor 
+            ### the overall variance of the tensor 
             self.mask = self.mask / (1.0 - self.p)
             return x * self.mask
         else:
@@ -658,11 +593,9 @@ class Embedding(GradLayer):
         self.vocab_size = vocab_size
         self.embed_dim = embed_dim
 
-        k = 1 / embed_dim
         self.weight = GradTensor(
-            np.random.uniform(
-                low=-math.sqrt(k),
-                high=math.sqrt(k),
+            np.random.normal(
+                scale=0.02,
                 size=(vocab_size, embed_dim)
             )
         )
@@ -721,7 +654,10 @@ class PositionalEmbeddings(GradLayer):
 
         # Learnable positional embeddings
         self.weight = GradTensor(
-            np.random.randn(max_seq_len, embed_dim).astype(np.float32) * 0.01
+            np.random.normal(
+                scale=0.02,
+                size=(max_seq_len, embed_dim)
+            )
         )
 
     def forward(self, x):
@@ -794,123 +730,7 @@ class LayerNorm(GradLayer):
         dx = (dx_hat - mean1 - self.x_hat * mean2) / np.sqrt(var_eps)
 
         return dx
-
-# class MultiHeadAttention(GradLayer):
-#     def __init__(self, embed_dim, num_heads):
-#         self.embed_dim = embed_dim
-#         self.num_heads = num_heads
-#         self.head_dim = embed_dim // num_heads
-
-#         assert self.head_dim * num_heads == embed_dim, "Embed dim must be divisible by num_heads"
-
-#         self.q_linear = Linear(self.embed_dim, self.embed_dim)
-#         self.k_linear = Linear(self.embed_dim, self.embed_dim)
-#         self.v_linear = Linear(self.embed_dim, self.embed_dim)
-#         self.out_proj = Linear(self.embed_dim, self.embed_dim)
-#         self.softmax = SoftMax()
-
-#     def forward(self, x, attention_mask=None):
-
-#         batch_size, seq_len, embed_dim = x.shape
-
-#         ### Flatten x from (B x S x E) -> (B*S x E) as my linear doesnt support multidimensions
-#         x = x.reshape(batch_size * seq_len, embed_dim)
-
-#         ### Linear Projections ###
-#         q = self.q_linear.forward(x)
-#         k = self.k_linear.forward(x)
-#         v = self.v_linear.forward(x)
-
-#         ### Reshape for MultiHead Attention ###
-#         q = q.reshape(batch_size, seq_len, self.num_heads, self.head_dim).transpose(0,2,1,3)
-#         k = k.reshape(batch_size, seq_len, self.num_heads, self.head_dim).transpose(0,2,1,3)
-#         v = v.reshape(batch_size, seq_len, self.num_heads, self.head_dim).transpose(0,2,1,3)
-
-#         ### Attention ###
-#         scores = np.matmul(q, k.transpose(0,1,3,2)) / math.sqrt(self.head_dim)
-
-#         ### Attention Mask ###
-#         if attention_mask is not None:
-#             scores += attention_mask
-        
-#         ### Reshape for Softmax ###
-#         scores_reshaped = scores.reshape(batch_size * self.num_heads, seq_len, seq_len)
-#         probs = self.softmax.forward(scores_reshaped)
-#         probs = probs.reshape(batch_size, self.num_heads, seq_len, seq_len)
-
-#         ### Store for Backwards ###
-#         self.q = q
-#         self.k = k
-#         self.v = v
-#         self.probs = probs
-
-#         ### Attention Output ###
-#         attn = np.matmul(probs, v)
-
-#         ### Concat Heads ###
-#         attn = attn.transpose(0,2,1,3).reshape(batch_size, seq_len, self.embed_dim)
-
-#         ### Reshape for Final Linear Layer ###
-#         attn_flat = attn.reshape(batch_size*seq_len, self.embed_dim)
-#         out = self.out_proj.forward(attn_flat)
-#         out = out.reshape(batch_size, seq_len, self.embed_dim)
-
-#         return out
-            
-#     def backward(self, output_grad):
-
-#         ### Input shape and output shape of transformer identical ###
-#         batch_size, seq_len, embed_dim = output_grad.shape
-
-#         ### Backward through out_proj layer (flatten as that how we passed to the layer in forward) ###
-#         output_grad_flat = output_grad.reshape(batch_size*seq_len, self.embed_dim)
-#         grad_attn_flat = self.out_proj.backward(output_grad_flat)
-#         grad_attn = grad_attn_flat.reshape(batch_size, seq_len, self.num_heads, self.head_dim)
-
-#         ### Backward through attn = probs @ v ###
-#         ### If Y = XW, dL/dW = X^T(dL/dY) and dL/dX = (dL/dY)W^T ###
-#         ### This was how our linear layer worked, the same idea applied here! ###
-#         grad_v = np.matmul(self.probs.transpose(0,1,3,2), grad_attn)
-#         grad_probs = np.matmul(grad_attn, self.v.transpose(0,1,3,2))
-
-#         ### Backward through Softmax ###
-#         grad_probs_reshaped = grad_probs.reshape(batch_size * self.num_heads, seq_len, seq_len)
-#         grad_scores_reshaped = self.softmax.backward(grad_probs_reshaped)
-#         grad_scores = grad_scores_reshaped.reshape(batch_size, self.num_heads, seq_len, seq_len)
-
-#         ### Backward through Scaling ###
-#         grad_scores /= math.sqrt(self.head_dim)
-
-#         ### Backward through scores = q @ k.T ###
-#         ### Just like before lets first do dL/dQ = dL/dS (k^T)^T = dL/dS (k) ###
-#         grad_q = np.matmul(grad_scores, self.k)
-#         ### dL/dK^T = Q^T dL/dS, but we need in terms of dL/dK to continue backprop ###
-#         ### to get our shapes correct. So dL/dK = [Q^T dL/dS]^T = (dL/dS)^T Q ###
-#         grad_k = np.matmul(grad_scores.transpose(0,1,3,2), self.q)
-
-#         ### Transpose Back and Flatten Head Dim and Num Heads ###
-#         grad_q = grad_q.transpose(0,2,1,3).reshape(batch_size, seq_len, self.embed_dim)
-#         grad_k = grad_k.transpose(0,2,1,3).reshape(batch_size, seq_len, self.embed_dim)
-#         grad_v = grad_v.transpose(0,2,1,3).reshape(batch_size, seq_len, self.embed_dim)
-
-#         ### Reshape for Linear Layer Backward ###
-#         grad_q_flat = grad_q.reshape(batch_size * seq_len, self.embed_dim)
-#         grad_k_flat = grad_k.reshape(batch_size * seq_len, self.embed_dim)
-#         grad_v_flat = grad_v.reshape(batch_size * seq_len, self.embed_dim)
-
-#         ### Backward through Linear Layers ###
-#         grad_query = self.q_linear.backward(grad_q_flat)
-#         grad_key = self.k_linear.backward(grad_k_flat)
-#         grad_value = self.v_linear.backward(grad_v_flat)
-
-#         ### Reshape Back to (B x S x E) ###
-#         grad_query = grad_query.reshape(batch_size, seq_len, self.embed_dim)
-#         grad_key = grad_key.reshape(batch_size, seq_len, self.embed_dim)
-#         grad_value = grad_value.reshape(batch_size, seq_len, self.embed_dim)
-
-#         ### Total up Gradients ###
-#         return grad_query + grad_key + grad_value
-
+    
 class MultiHeadAttention(GradLayer):
     """
     Multi-Head Self-Attention.
@@ -935,14 +755,12 @@ class MultiHeadAttention(GradLayer):
         batch_size, seq_len, _ = x.shape
         
         # Reshape for linear layers: (batch_size * seq_len, embed_dim)
-        query_flat = x.reshape(batch_size * seq_len, self.embed_dim)
-        key_flat = x.reshape(batch_size * seq_len, self.embed_dim)
-        value_flat = x.reshape(batch_size * seq_len, self.embed_dim)
-        
+        x_flat = x.reshape(batch_size * seq_len, self.embed_dim)
+
         # Linear projections
-        q = self.q_linear.forward(query_flat)
-        k = self.k_linear.forward(key_flat)
-        v = self.v_linear.forward(value_flat)
+        q = self.q_linear.forward(x_flat)
+        k = self.k_linear.forward(x_flat)
+        v = self.v_linear.forward(x_flat)
         
         # Reshape back to (batch_size, seq_len, embed_dim) then to heads
         q = q.reshape(batch_size, seq_len, self.num_heads, self.head_dim).transpose(0, 2, 1, 3)
@@ -952,8 +770,10 @@ class MultiHeadAttention(GradLayer):
         # Scaled dot-product attention
         scores = np.matmul(q, k.transpose(0, 1, 3, 2)) / math.sqrt(self.head_dim)
         
-        if attention_mask is not None:
-            scores += attention_mask
+        ### Mask out any non causal positions ###
+        self.attention_mask = attention_mask
+        if self.attention_mask is not None:
+            scores += self.attention_mask
         
         # Apply softmax
         scores_reshaped = scores.reshape(batch_size * self.num_heads, seq_len, seq_len)
@@ -1001,6 +821,10 @@ class MultiHeadAttention(GradLayer):
         grad_scores_reshaped = self.softmax.backward(grad_probs_reshaped)
         grad_scores = grad_scores_reshaped.reshape(batch_size, self.num_heads, seq_len, seq_len)
         
+        ### 0 out grads from non causal positions ###
+        if self.attention_mask is not None:
+            grad_scores = np.where(self.attention_mask==-np.inf, 0, grad_scores)
+
         # Back through scaling
         grad_scores /= math.sqrt(self.head_dim)
         
@@ -1038,7 +862,7 @@ class FFN(GradLayer):
     def __init__(self, embed_dim, dim_mult=4):
 
         self.linear1 = Linear(embed_dim, embed_dim*dim_mult)
-        self.gelu = GELU()
+        self.relu = ReLU()
         self.linear2 = Linear(embed_dim*dim_mult, embed_dim)
     
     def forward(self, x):
@@ -1048,7 +872,7 @@ class FFN(GradLayer):
         ### Flatten x from (B x S x E) -> (B*S x E) as my linear doesnt support multidimensions
         x_flat = x.reshape(batch_size*seq_len, embed_dim)
         x_flat = self.linear1.forward(x_flat)
-        x_flat = self.gelu.forward(x_flat)
+        x_flat = self.relu.forward(x_flat)
         x_flat = self.linear2.forward(x_flat)
         
         ### Reshape X back ###
@@ -1065,7 +889,7 @@ class FFN(GradLayer):
 
         ### Compute Backward Grads ###
         output_grad_flat = self.linear2.backward(output_grad_flat)
-        output_grad_flat = self.gelu.backward(output_grad_flat)
+        output_grad_flat = self.relu.backward(output_grad_flat)
         output_grad_flat = self.linear1.backward(output_grad_flat)
 
         ### Reshape Back ###

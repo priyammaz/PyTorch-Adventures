@@ -81,7 +81,7 @@ optimizer = optim.Adam(model.parameters(), lr=0.0002)
 # 6. Training loop
 model.train()
 train_iterations = 5000
-batch_size = 64
+batch_size = 32
 
 for epoch in tqdm(range(train_iterations)):
     inputs, targets = get_batch(data, batch_size, seq_len)

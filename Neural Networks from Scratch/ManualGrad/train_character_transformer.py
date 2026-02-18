@@ -42,14 +42,14 @@ model.add(nn.FlattenForLLM())
 model.add(nn.Linear(in_features=384, out_features=vocab_size))
 
 seq_len = 256
-causal_mask = np.triu(np.ones((1, 1, seq_len, seq_len)) * -1e9, k=1)
+causal_mask = np.triu(np.ones((1, 1, seq_len, seq_len)) * -np.inf, k=1)
 loss_fn = nn.CrossEntropyLoss()
 optimizer = optim.Adam(model.parameters(), lr=0.0002)
 
 # 5. Training loop
 model.train()
 train_iterations = 5000
-batch_size = 64
+batch_size = 16
 
 for epoch in tqdm(range(train_iterations)):
     inputs, targets = get_batch(data, batch_size, seq_len)
@@ -69,27 +69,28 @@ for epoch in tqdm(range(train_iterations)):
         
         print(f"Epoch {epoch}, Loss: {loss:.4f}, Accuracy: {accuracy:.2f}%")
 
+        model.eval()
+        seed = np.array([[char_to_idx['h']]])  # starting character
+        generated = [seed.item()]
+
+        for _ in range(seq_len):
+            curr_len = seed.shape[1]
+            causal_mask = np.triu(np.ones((1, 1, curr_len, curr_len)) * -1e9, k=1)
+
+            logits = model.forward(seed, causal_mask)  # apply causal mask
+            last_logits = logits[-1]  # take logits for last position
+
+            # Softmax and sampling
+            probs = np.exp(last_logits - np.max(last_logits))
+            probs /= np.sum(probs)
+
+            next_token = np.random.choice(vocab_size, size=1, p=probs)[0].get().item()  # sample 
+            generated.append(next_token)
+            seed = np.array(generated).reshape(1, -1)
+        
+        print("".join([idx_to_char[i] for i in generated]))
+        model.train()
+
 model.save("work_dir/character_transformer.pkl")
 model.load("work_dir/character_transformer.pkl")
 
-print("Inferencing")
-model.eval()
-seed = np.array([[char_to_idx['h']]])  # starting character
-generated = [seed.item()]
-
-for _ in range(seq_len):
-    curr_len = seed.shape[1]
-    causal_mask = np.triu(np.ones((1, 1, curr_len, curr_len)) * -1e9, k=1)
-
-    logits = model.forward(seed, causal_mask)  # apply causal mask
-    last_logits = logits[-1]  # take logits for last position
-
-    # Softmax and sampling
-    probs = np.exp(last_logits - np.max(last_logits))
-    probs /= np.sum(probs)
-
-    next_token = np.random.choice(vocab_size, size=1, p=probs)[0].get().item()  # sample 
-    generated.append(next_token)
-    seed = np.array(generated).reshape(1, -1)
-  
-print("".join([idx_to_char[i] for i in generated]))
