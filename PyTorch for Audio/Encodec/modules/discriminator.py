@@ -71,6 +71,7 @@ class DiscriminatorSTFT(nn.Module):
                  dilations=[1,2,4], stride=(1,2), normalized=True, 
                  norm="weight_norm", activation="LeakyReLU",
                  activation_params: dict = {'negative_slope': 0.2}):
+        
         super().__init__()
 
         self.filters = filters
@@ -119,9 +120,7 @@ class DiscriminatorSTFT(nn.Module):
                                     kernel_size=(kernel_size[0], kernel_size[0]),
                                     padding=get_2d_padding((kernel_size[0], kernel_size[0])),
                                     norm=norm)
-        
-        self.apply(init_weights)
-        
+
     def forward(self, x):
 
         fmap = []

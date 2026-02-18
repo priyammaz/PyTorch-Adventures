@@ -2,6 +2,7 @@ training_config:
 
   ### Experiment Setup ###
   experiment_name: EnCodecTrainerLibriTTS
+  run_name: null
   working_directory: "work_dir"
 
   ### Point to directory with audio files (recursive search) ###
@@ -16,7 +17,7 @@ training_config:
   ### Audio Processing Setup ###
   sampling_rate: 24000
   segment_length: 24000
-  num_mels: 64
+  num_mels: 80
 
   ### Training Setup ###
   total_iterations: 500000 
@@ -37,8 +38,8 @@ training_config:
   ### Optimizer Setup ###
   learning_rate: 0.0003
   disc_learning_rate: 0.0003
-  disc_update_prob: 0.666
-  beta1: 0.5
+  disc_update_prob: 0.5
+  beta1: 0.5 
   beta2: 0.9
 
   ### Loss Setup ###
@@ -63,7 +64,7 @@ generator_config:
   n_filters: 32
   n_residual_layers: 1
   ratios: [8, 5, 4, 2]
-  activation: ELU
+  activation: Snake
   final_activation: null
   norm: weight_norm
   kernel_size: 7
@@ -89,8 +90,8 @@ discriminator_config:
 
   ### Which Discriminators Do You Want To Use? ##
   use_multiscale_freq_discrim: True
-  use_multiscale_time_discrim: False
-  use_multiperiod_time_discrim: False
+  use_multiscale_time_discrim: True
+  use_multiperiod_time_discrim: True
 
   ### Filter Sizes (for all discriminators) ###
   filters: 32

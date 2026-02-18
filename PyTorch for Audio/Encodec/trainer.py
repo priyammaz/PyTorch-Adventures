@@ -1,4 +1,5 @@
 import os
+import shutil
 from pathlib import Path
 import librosa
 import torch
@@ -32,6 +33,7 @@ class EncodecTrainer:
 
         ### EXPERIMENT SETUP ###
         self.experiment_name = training_config.get("experiment_name", "EnCodecTrainer")
+        self.run_name = training_config.get("run_name", None)
         self.working_directory = training_config.get("working_directory", "work_dir")
 
         ### DATA SOURCE SETUP ###
@@ -87,8 +89,16 @@ class EncodecTrainer:
         os.makedirs(self.path_to_experiment, exist_ok=True)
         self.accelerator = Accelerator(project_dir=self.path_to_experiment, 
                                        log_with="wandb" if self.log_wandb else None)
-        if self.log_wandb: ### ADD CONFIG
-            self.accelerator.init_trackers(self.experiment_name)
+        if self.log_wandb: 
+            init_kwargs = {}
+            if self.run_name is not None:
+                init_kwargs = {"wandb": {"name": self.run_name}}
+            
+            run_config = {"training_config": training_config, 
+                          "generator_config": generator.config,
+                          "discriminator_config": discriminator.config if discriminator is not None else {}}
+            
+            self.accelerator.init_trackers(self.experiment_name, config=run_config, init_kwargs=init_kwargs)
 
         ### Store ###
         self.generator = generator
@@ -103,11 +113,12 @@ class EncodecTrainer:
 
     def _find_audio_files(self):
         """extract audio files with durations longer than segment_length / sampling_rate"""
+        self.accelerator.print("Finding Audio Files...")
         extensions = {".wav", ".mp3",".flac"}
         min_duration = self.segment_length / self.sampling_rate
 
         audio_files = []
-        iterator = Path(self.path_to_audio_dir).rglob("")
+        iterator = Path(self.path_to_audio_dir).rglob("*")
 
         for path in iterator:
             if not path.is_file():
@@ -147,7 +158,7 @@ class EncodecTrainer:
         return train_split, test_split
     
     def _get_datasets(self):
-
+        
         if (self.path_to_audio_dir is None) == (self.path_to_train_manifest is None):
             raise ValueError(
                 "Exactly one of `path_to_audio_dir` or `path_to_manifest` must be provided."
@@ -224,7 +235,7 @@ class EncodecTrainer:
 
             ### Replace the class variables for train/test manifests to the cached files ###
             self.path_to_train_manifest = os.path.join(self.path_to_experiment, "train.txt")
-            self.path_to_val_manifest = os.path.join(self.path_to_audio_dir, "test.txt")
+            self.path_to_val_manifest = os.path.join(self.path_to_experiment, "test.txt")
             trainset, testset = self._get_datasets()
         
         ### Load Dataloader ###
@@ -239,6 +250,22 @@ class EncodecTrainer:
         if not resume:
             sampled_paths = random.sample(testset.audio_paths, k=self.num_samples_for_reconstruction)
             self._write_list_to_text(sampled_paths, os.path.join(self.path_to_experiment, "samples.txt"))
+            path_to_save_inputs = os.path.join(self.path_to_experiment, "gen_inputs")
+            os.makedirs(path_to_save_inputs, exist_ok=True)
+
+            ### make copy for easy access later ###
+            for i, path in enumerate(sampled_paths):
+                
+                # extract extension (.wav, .mp3, .flac, etc.)
+                _, ext = os.path.splitext(path)
+
+                # new filename with same extension
+                filename = f"gen_{i}{ext}"
+
+                # Copy
+                dst_path = os.path.join(path_to_save_inputs, filename)
+                shutil.copy(path, dst_path)
+
         else:
             sampled_paths = self._load_paths_from_text(os.path.join(self.path_to_experiment, "samples.txt"))
         cached_audios = load_audios(sampled_paths, self.sampling_rate)
@@ -246,6 +273,7 @@ class EncodecTrainer:
         ### Load Optimizers ###
         optimizer = torch.optim.Adam([p for p in self.generator.parameters() if p.requires_grad], lr=self.learning_rate)
         
+        disc_optimizer = None
         if self.discriminator is not None:
             disc_optimizer = torch.optim.Adam(self.discriminator.parameters(), lr=self.disc_learning_rate)
 
@@ -255,7 +283,8 @@ class EncodecTrainer:
             num_warmup_steps=self.warmup_iterations * self.accelerator.num_processes, 
             num_training_steps=self.total_iterations * self.accelerator.num_processes
         )
-        
+    
+        disc_scheduler = None
         if self.discriminator is not None:
             disc_scheduler = get_cosine_schedule_with_warmup(
                 disc_optimizer, 
@@ -269,25 +298,20 @@ class EncodecTrainer:
             optimizer, 
             scheduler, 
             trainloader, 
-            testloader
+            testloader,
+            self.discriminator, 
+            disc_optimizer, 
+            disc_scheduler
         ) = self.accelerator.prepare(
             self.generator, 
             optimizer, 
             scheduler, 
             trainloader, 
-            testloader
+            testloader,
+            self.discriminator, 
+            disc_optimizer, 
+            disc_scheduler
         )
-
-        if self.discriminator is not None:
-            (
-                self.discriminator, 
-                disc_optimizer, 
-                disc_scheduler 
-            ) = self.accelerator.prepare(
-                self.discriminator, 
-                disc_optimizer, 
-                disc_scheduler
-            )
 
         ### Initialize Balancer ###
         ### Use key names that match our loss function output later ###
@@ -313,6 +337,7 @@ class EncodecTrainer:
                 key=lambda x: int(x.split("_")[1]),
             )
             last_ckpt = os.path.join(self.path_to_experiment, last_ckpt)
+            self.accelerator.print(f"Resuming From Checkpoint: {last_ckpt}")
             self.accelerator.load_state(last_ckpt)
 
             if self.use_balancer:
@@ -380,7 +405,7 @@ class EncodecTrainer:
                     ### Compute separately grads w.r.t commitment loss ###
                     ### as this only effects the encoder portion of the model ###
                     ### https://github.com/facebookresearch/encodec/issues/20
-                    self.accelerator.backward(output["quantizer_loss"])
+                    self.accelerator.backward(self.quantizer_loss_lambda * output["quantizer_loss"])
                 
                 ### Graient Clipping ###
                 if self.max_grad_norm is not None:
@@ -411,7 +436,7 @@ class EncodecTrainer:
                     ### Dimscriminator Step ###
                     ###########################
 
-                    disc_optimizer.zero_grad()
+                    disc_optimizer.zero_grad(set_to_none=True)
 
                     ### Random sample value between 0 and 1 ###
                     ### Ensure all GPUs have the same value ###
@@ -504,9 +529,9 @@ class EncodecTrainer:
 
                             ### pass real and fake into disc ###
                             if self.discriminator is not None:
-                                logits_real, logits_fake, fmask_real, fmask_fake = self.discriminator(waveforms, output["decoded"])
+                                logits_real, logits_fake, fmap_real, fmap_fake = self.discriminator(waveforms, output["decoded"])
                             else:
-                                logits_real = logits_fake = fmask_real = fmask_fake = None
+                                logits_real = logits_fake = fmap_real = fmap_fake = None
 
                         ### Compute Generator Loss ###
                         losses = generator_loss(
