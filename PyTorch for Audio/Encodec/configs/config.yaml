@@ -1,0 +1,120 @@
+training_config:
+
+  ### Experiment Setup ###
+  experiment_name: EnCodecTrainerLibriTTS
+  working_directory: "work_dir"
+
+  ### Point to directory with audio files (recursive search) ###
+  ### and provide a test split percentage ###
+  path_to_audio_dir: null
+  test_pct: null
+
+  ### Or pass in the train/test files that are a txt file with paths ###
+  path_to_train_manifest: data/train.txt
+  path_to_test_manifest: data/test.txt
+
+  ### Audio Processing Setup ###
+  sampling_rate: 24000
+  segment_length: 24000
+  num_mels: 64
+
+  ### Training Setup ###
+  total_iterations: 500000 
+  warmup_iterations: 5000
+  checkpoint_iterations: 20000
+  eval_iterations: 2000
+  generation_iterations: 2000
+  per_gpu_batch_size: 16
+  num_workers: 16
+  pin_memory: True
+  max_grad_norm: 1.0
+
+  ### Logging Setup ###
+  console_out_iters: 5
+  log_wandb: True
+  wand_log_iters: 5
+
+  ### Optimizer Setup ###
+  learning_rate: 0.0003
+  disc_learning_rate: 0.0003
+  disc_update_prob: 0.666
+  beta1: 0.5
+  beta2: 0.9
+
+  ### Loss Setup ###
+  time_loss_lambda: 0.1
+  frequency_loss_lambda: 1.0
+  feature_loss_lambda: 3.0
+  generator_loss_lambda: 3.0
+  quantizer_loss_lambda: 1.0
+  use_balancer: True
+
+  ### Inference Setup ###
+  num_samples_for_reconstruction: 5
+
+  ### Seed ###
+  seed: null
+
+generator_config:
+
+  ### Encoder/Decoder Setup ###
+  channels: 1
+  dimension: 128
+  n_filters: 32
+  n_residual_layers: 1
+  ratios: [8, 5, 4, 2]
+  activation: ELU
+  final_activation: null
+  norm: weight_norm
+  kernel_size: 7
+  last_kernel_size: 7
+  residual_kernel_size: 3
+  dilation_base: 2
+  pad_mode: reflect
+  true_skip: False
+  compress: 2 
+  lstm: 2
+  lstm_bidirectional: True
+
+  ### Quantizer Setup ###
+  num_quantizers: 8
+  codebook_size: 1024
+  codebook_dim: null
+  decay: 0.99
+  kmeans_init: True
+  kmeans_iters: 50
+  threshold_ema_dead_code: 2
+
+discriminator_config:
+
+  ### Which Discriminators Do You Want To Use? ##
+  use_multiscale_freq_discrim: True
+  use_multiscale_time_discrim: False
+  use_multiperiod_time_discrim: False
+
+  ### Filter Sizes (for all discriminators) ###
+  filters: 32
+  filter_scale: 1
+  max_filters: 1024
+
+  ### Multiscale STFT Discriminator Config ###  
+  n_ffts: [2048, 1024, 512, 256, 128]
+  win_lengths: [2048, 1024, 512, 256, 128]
+  hop_lengths: [512, 256, 128, 64, 32]
+  kernel_size: [3,9]
+  dilations: [1,2,4]
+  stride: [1,2]
+  normalized: True
+  norm: weight_norm
+  activation: "LeakyReLU"
+
+  ### Multiscale Time Discriminator ###
+  msd_num_downsamples: 2
+  msd_kernel_size: 5
+  msd_stride: 3
+
+  ### Multiperiod Discriminator ###
+  mpd_periods: [2,3,5,7,11]
+
+
+

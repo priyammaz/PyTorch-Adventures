@@ -64,14 +64,16 @@ def averager(beta=1.0, state=None):
         ### For every metric ###
         for key, value in metrics.items():
             
-            ### Update current metric total: current * beta + new ###
-            total[key] = total[key] * beta + float(value)
-            
-            ### Update normalization: old norm * beta + 1 for the new sample ###
-            fix[key] = fix[key] * beta + 1
+            if value is not None:
+
+                ### Update current metric total: current * beta + new ###
+                total[key] = total[key] * beta + float(value)
+                
+                ### Update normalization: old norm * beta + 1 for the new sample ###
+                fix[key] = fix[key] * beta + 1
         
         ### Return the normalized metrics ###
-        return {key: tot / fix[key] for key, tot in total.items()}
+        return {key: (tot / fix[key] if tot is not None else None) for key, tot in total.items()}
     
     def get_state():
         """get the running accumulations we have"""
@@ -182,23 +184,29 @@ class Balancer:
             
             ### Compute the gradient of the loss w.r.t the model outputs ### 
             ### which will be passed in as input ###
-            grad, *_ = torch.autograd.grad(loss, [input], retain_graph=True)
+            grad, *_ = torch.autograd.grad(loss, [input], retain_graph=True, allow_unused=True)
+            
+            if grad is not None:
 
-            ### The grad of loss w.r.t input will be in the shape of the input ###
-            ### which in our case is the output of the model so its (B x 1 x L) ###
-            ### so lets compute the per-sample norm of the grads ###
-            dims = tuple(range(1, grad.dim())) # all dims after batch dim
-            norm = grad.norm(dim=dims)
+                ### The grad of loss w.r.t input will be in the shape of the input ###
+                ### which in our case is the output of the model so its (B x 1 x L) ###
+                ### so lets compute the per-sample norm of the grads ###
+                dims = tuple(range(1, grad.dim())) # all dims after batch dim
+                norm = grad.norm(dim=dims)
 
-            ### Average up the norm across the batch ###
-            norm = norm.mean()
+                ### Average up the norm across the batch ###
+                norm = norm.mean()
 
-            ### Store the grad and norm per loss ###
-            norms[name] = norm
-            grads[name] = grad
+                ### Store the grad and norm per loss ###
+                norms[name] = norm
+                grads[name] = grad
 
-        ### What is the per gpu batch size? use the last grad as they are all the same for each loss ###
-        count = len(grad)
+                ### What is the per gpu batch size? use the last grad as they are all the same for each loss ###
+                count = len(grad)
+            
+            else:
+                norms[name] = None
+                grads[name] = None
         
         ### Compute the avg norms across GPUs ###
         avg_norms = average_metrics(self.averager(norms), count, self.accelerator)
@@ -219,11 +227,14 @@ class Balancer:
             ### Clip scale incase of extreme values (helps with training at the start) ###
             scale = max(self.min_scale, min(scale, self.max_scale))
 
-            ### Scale gradients ###
-            grad = grads[name] * scale
-        
-            ### Accumulate grads ###
-            out_grad += grad
+            
+            if grads[name] is not None:
+                
+                ### Scale gradients ###
+                grad = grads[name] * scale
+            
+                ### Accumulate grads ###
+                out_grad += grad
         
         ### We have now scaled and accumulated up our gradients w.r.t the input ###
         ### Lets keep the backward pass going now from the input (output of encoder) ###

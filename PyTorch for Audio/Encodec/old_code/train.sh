@@ -1,10 +1,11 @@
 accelerate launch train.py \
-    --experiment_name encodec_trainer_libri \
+    --experiment_name encodec_trainer_libri_manydisc \
     --working_directory work_dir \
     --path_to_train_manifest data/train.txt \
     --path_to_val_manifest data/test.txt \
     --sampling_rate 24000 \
     --segment_length 24000 \
+    --num_mels 80 \
     --training_epochs 100 \
     --warmup_epochs 5 \
     --console_out_iters 5 \
@@ -14,8 +15,8 @@ accelerate launch train.py \
     --learning_rate 0.0003 \
     --disc_learning_rate 0.0003 \
     --disc_update_prob 0.666 \
-    --time_loss 0.1 \
-    --frequency_loss 1 \
+    --time_loss 1 \
+    --frequency_loss 10 \
     --feature_loss 3 \
     --generator_loss 3 \
     --beta1 0.5 \

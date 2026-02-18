@@ -5,13 +5,45 @@ import numpy as np
 from .conv import SConv1d, SConvTranspose1d
 from .lstm import SLSTM
 
+class Snake(nn.Module):
+    """Acitvation function proposed in https://arxiv.org/abs/2006.08195
+    and used in SpeechTokenizer, BigvGAN and others"""
+    
+    def __init__(self, 
+                 in_features, 
+                 alpha=1.0, 
+                 use_separarate_magnitude_param=False, 
+                 params_trainable=True,
+                 eps=1e-6):
+        super().__init__()
+
+        self.eps = eps 
+
+        self.alpha = nn.Parameter(torch.ones(in_features) * alpha, requires_grad=params_trainable)
+        if use_separarate_magnitude_param:
+            self.beta = nn.Parameter(torch.ones(in_features) * alpha, requires_grad=params_trainable)
+        else:
+            self.beta = self.alpha
+
+    def forward(self, x):
+
+        ### alpha is size (in_features, ), our data is (B x in_features x T), so lets add in dimensions ###
+        ### so we can broadcast over the B and T dims ###
+        alpha = self.alpha.unsqueeze(0).unsqueeze(-1)
+        beta = self.beta.unsqueeze(0).unsqueeze(-1)
+
+        ### forward pass from paper: x + (1 / b) * sin^2(x*a)
+        x = x + (1.0 / (beta + self.eps)) * torch.sin(x * alpha).pow(2)
+
+        return x
+
 class SEANetResnetBlock(nn.Module):
     def __init__(self, 
                  dim, 
                  kernel_sizes=[3,1],
                  dilations=[1,1],
                  activation="ELU",
-                 activation_parms={"alpha": 1.0},
+                 activation_params={"alpha": 1.0},
                  norm="weight_norm",
                  norm_params={}, 
                  pad_mode="reflect",
@@ -22,7 +54,7 @@ class SEANetResnetBlock(nn.Module):
 
         ### Output channel dimensions 
         hidden = dim // compress
-        act = getattr(nn, activation)
+        act = getattr(nn, activation) if activation != "Snake" else Snake
 
         block = []
         for i, (kernel_size, dilation) in enumerate(zip(kernel_sizes, dilations)):
@@ -30,7 +62,7 @@ class SEANetResnetBlock(nn.Module):
             out_channels = dim if i == len(kernel_sizes) - 1 else hidden # output is first hidden, at the end back to dim
             
             block += [
-                act(**activation_parms),
+                act(**activation_params) if activation != "Snake" else act(in_channels),
                 SConv1d(in_channels, out_channels, kernel_size=kernel_size, dilation=dilation, 
                         norm=norm, norm_kwargs=norm_params, pad_mode="reflect")
             ]
@@ -68,7 +100,8 @@ class SEANetEncoder(nn.Module):
                  pad_mode="reflect", 
                  true_skip=False, 
                  compress=2, 
-                 lstm=2):
+                 lstm=2,
+                 lstm_bidirectional=True):
 
         super().__init__()
         
@@ -80,7 +113,7 @@ class SEANetEncoder(nn.Module):
         self.hop_length = np.prod(self.ratios)
 
         ### Get activation function 
-        act = getattr(nn, activation)
+        act = getattr(nn, activation) if activation != "Snake" else Snake
 
         ### Initialize multiplier ###
         mult = 1
@@ -103,14 +136,14 @@ class SEANetEncoder(nn.Module):
                         mult * n_filters, kernel_sizes=[residual_kernel_size, 1], 
                         dilations=[dilation_base ** j, 1], 
                         norm=norm, norm_params=norm_params, 
-                        activation=activation, activation_parms=activation_params, 
+                        activation=activation, activation_params=activation_params, 
                         pad_mode=pad_mode, compress=compress, true_skip=true_skip
                     )
                 ]
 
             ### Followed by the downsample ###
             model += [
-                act(**activation_params),
+                act(**activation_params) if activation != "Snake" else act(mult * n_filters),
                 SConv1d(mult * n_filters, mult * n_filters * 2, 
                         kernel_size=ratio * 2, stride=ratio, # stride=ratio will downsample by that factor
                         norm=norm, norm_kwargs=norm_params, 
@@ -122,11 +155,11 @@ class SEANetEncoder(nn.Module):
 
         ### Add on LSTM layers
         if lstm:
-            model += [SLSTM(mult * n_filters, num_layers=lstm)]
+            model += [SLSTM(mult * n_filters, num_layers=lstm, bidirectional=lstm_bidirectional)]
         
         ### Post process with a final convolution ###
         model += [
-            act(**activation_params),
+            act(**activation_params) if activation != "Snake" else act(mult * n_filters),
             SConv1d(mult * n_filters, dimension, last_kernel_size, 
                     norm=norm, norm_kwargs=norm_params, 
                     pad_mode=pad_mode)
@@ -157,7 +190,8 @@ class SEANetDecoder(nn.Module):
                  pad_mode="reflect", 
                  true_skip=False,
                  compress=2, 
-                 lstm=2):
+                 lstm=2,
+                 lstm_bidirectional=True):
 
         super().__init__()
 
@@ -168,7 +202,7 @@ class SEANetDecoder(nn.Module):
         self.n_residual_layers = n_residual_layers
         self.hop_length = np.prod(self.ratios)
 
-        act = getattr(nn, activation)
+        act = getattr(nn, activation) if activation != "Snake" else Snake
         mult = int(2 ** len(self.ratios))
 
         ### This will basically be opposite of the Encoder 
@@ -179,12 +213,12 @@ class SEANetDecoder(nn.Module):
         ]
 
         if lstm:
-            model += [SLSTM(mult * n_filters, num_layers=lstm)]
+            model += [SLSTM(mult * n_filters, num_layers=lstm, bidirectional=lstm_bidirectional)]
 
         for i, ratio in enumerate(self.ratios):
 
             model += [
-                act(**activation_params),
+                act(**activation_params) if activation != "Snake" else act(mult * n_filters),
                 SConvTranspose1d(mult * n_filters, mult * n_filters // 2, 
                                  kernel_size=ratio * 2, stride=ratio, 
                                  norm=norm, norm_kwargs=norm_params)
@@ -197,7 +231,7 @@ class SEANetDecoder(nn.Module):
                         mult * n_filters // 2, kernel_sizes=[residual_kernel_size, 1], 
                         dilations=[dilation_base ** j, 1], 
                         norm=norm, norm_params=norm_params, 
-                        activation=activation, activation_parms=activation_params, 
+                        activation=activation, activation_params=activation_params, 
                         pad_mode=pad_mode, compress=compress, true_skip=true_skip
                     )
                 ]
@@ -205,7 +239,7 @@ class SEANetDecoder(nn.Module):
             mult //= 2
 
         model += [
-            act(**activation_params),
+            act(**activation_params) if activation != "Snake" else act(mult * n_filters),
             SConv1d(n_filters, channels, last_kernel_size, 
                     norm=norm, norm_kwargs=norm_params, 
                     pad_mode=pad_mode)

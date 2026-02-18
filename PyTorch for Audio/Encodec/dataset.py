@@ -16,7 +16,8 @@ class AudioDataset(Dataset):
     passed to the model
     """
     def __init__(self, 
-                 path_to_txt, 
+                 path_to_txt=None, 
+                 audio_paths=None,
                  segment_length=24000, 
                  sample_rate=24000):
 
@@ -24,9 +25,12 @@ class AudioDataset(Dataset):
         self.sample_rate = sample_rate
         
         # Read all audio file paths from the text file
-        with open(path_to_txt, 'r') as f:
-            self.audio_paths = [line.strip() for line in f if line.strip()]
-            
+        if audio_paths is None:
+            with open(path_to_txt, 'r') as f:
+                self.audio_paths = [line.strip() for line in f if line.strip()]
+        else:
+            self.audio_paths = audio_paths
+
     def __len__(self):
         return len(self.audio_paths)
     

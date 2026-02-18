@@ -48,8 +48,9 @@ def main():
     parser.add_argument("--seed", type=int, default=42,
                         help="Random seed")
 
-    parser.add_argument("--train_file", type=Path, default="train.txt")
-    parser.add_argument("--test_file", type=Path, default="test.txt")
+    parser.add_argument("--train_file", type=Path, default="data/train.txt")
+    parser.add_argument("--max_train_files", type=int, default=None)
+    parser.add_argument("--test_file", type=Path, default="data/test.txt")
 
     parser.add_argument("--output", type=Path,
                         help="Output file if not splitting")
@@ -81,6 +82,10 @@ def main():
 
         train_files = files[:train_size]
         test_files = files[train_size:]
+
+        if args.max_train_files is not None:
+            if len(train_files) > args.max_train_files:
+                train_files = train_files[:args.max_train_files]
 
         save_list(train_files, args.train_file, root_dir, args.relative)
         save_list(test_files, args.test_file, root_dir, args.relative)

@@ -10,8 +10,8 @@ import random
 from tqdm import tqdm
 from transformers import get_cosine_schedule_with_warmup
 
-from modules.encodec import EncodecModel
-from modules.discriminator import MultiScaleSTFTDiscriminator
+from modules.encodec import EncodecModel, EnCodecConfig
+from modules.discriminator import Discriminator, DisciminatorConfig
 from dataset import AudioDataset
 from loss import generator_loss, discriminator_loss
 from utils import load_audios, save_audios
@@ -33,6 +33,7 @@ def parse_args():
     ### TRAINING CONFIG ###
     parser.add_argument("--sampling_rate", type=int, default=24000)
     parser.add_argument("--segment_length", type=int, default=72000)
+    parser.add_argument("--num_mels", type=int, default=80)
     parser.add_argument("--training_epochs", type=int, default=100)
     parser.add_argument("--warmup_epochs", type=float, default=5)
     parser.add_argument("--console_out_iters", type=int, default=5)
@@ -102,10 +103,12 @@ path_to_saves = [os.path.join(path_to_save_dir, file) for file in [f"gen_{i}.wav
 save_audios(cached_audios, path_to_saves, args.sampling_rate)
 
 ### Load Model ###
-model = EncodecModel(accelerator=accelerator)
+model_config = EnCodecConfig()
+model = EncodecModel(config=model_config, accelerator=accelerator)
 
 ### Load Discriminator ###
-disc_model = MultiScaleSTFTDiscriminator()
+disc_config = DisciminatorConfig()
+disc_model = Discriminator(config=disc_config)
 
 ### Print Training Run Config to Console ###
 def count_params(model):
@@ -222,8 +225,7 @@ for epoch in range(starting_epoch, args.training_epochs):
         output = model(waveforms)
 
         ### pass real and fake into disc ###
-        logits_real, fmap_real = disc_model(waveforms)
-        logits_fake, fmap_fake = disc_model(output["decoded"])
+        logits_real, logits_fake, fmap_real, fmap_fake = disc_model(waveforms, output["decoded"])
 
         ### Compute Generator Loss ###
         losses = generator_loss(
@@ -291,8 +293,7 @@ for epoch in range(starting_epoch, args.training_epochs):
         if rand < args.disc_update_prob:
         
             ### Pass Through Discriminator ###
-            logits_real, _ = disc_model(waveforms)
-            logits_fake, _ = disc_model(output["decoded"].detach())
+            logits_real, logits_fake, _, _ = disc_model(waveforms, output["decoded"].detach())
 
             ### Compute Discriminator Loss ###
             disc_loss = discriminator_loss(logits_real, logits_fake)
@@ -359,8 +360,7 @@ for epoch in range(starting_epoch, args.training_epochs):
             output = model(waveforms)
 
         ### pass real and fake into disc ###
-        logits_real, fmap_real = disc_model(waveforms)
-        logits_fake, fmap_fake = disc_model(output["decoded"])
+        logits_real, logits_fake, _, _ = disc_model(waveforms, output["decoded"])
 
         ### Compute Generator Loss ###
         losses = generator_loss(

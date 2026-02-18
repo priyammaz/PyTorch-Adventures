@@ -10,7 +10,7 @@ class Audio2Mel(nn.Module):
         hop_length=256,
         win_length=1024,
         sampling_rate=22050,
-        n_mel_channels=64,
+        n_mel_channels=80,
         mel_fmin=0.0,
         mel_fmax=None,
         device='cuda'
@@ -63,18 +63,15 @@ class Audio2Mel(nn.Module):
 
         return log_mel_spec
     
-
 def generator_loss(
         fmap_real, # list[list[tensor]] -> K discriminators, L layers each
         fmap_fake, # list[list[tensor]]
         logits_fake, # list[tensor] -> K discriminator outputs
         input_wav,
         output_wav, 
-        sample_rate=24000
+        sample_rate=24000,
+        num_mels=80
 ):
-    
-    K = len(logits_fake)
-    L = len(fmap_fake[0])
     
     ### Time Domain Loss ###
     time_loss = F.l1_loss(input_wav, output_wav)
@@ -89,26 +86,37 @@ def generator_loss(
         window_size = 2 ** i
         hop_size = window_size // 4
         fft = Audio2Mel(n_fft=window_size, win_length=window_size, 
-                        hop_length=hop_size, sampling_rate=sample_rate)
+                        hop_length=hop_size, sampling_rate=sample_rate,
+                        n_mel_channels=num_mels)
         input_mel = fft(input_wav)
         output_mel = fft(output_wav)
 
         ### Now we do both an L1 and and L2 Loss between these ###
         frequency_loss = frequency_loss + F.l1_loss(input_mel, output_mel) + F.mse_loss(input_mel, output_mel)
     
-    ### Generator Loss (hinge loss) ###
-    generator_loss = 0.0
-    for lfake in logits_fake:
-        generator_loss = generator_loss + torch.mean(F.relu(1 - lfake))
-    generator_loss = generator_loss / K
+    if (fmap_real is not None) and (fmap_fake is not None) and (logits_fake is not None):
 
-    ### Disc Feature Loss ###
-    feature_loss = 0.0
-    for freals, ffakes in zip(fmap_real, fmap_fake):
-        for freal, ffake in zip(freals, ffakes):
-            ### normalize by torch.mean(torch.abs(freal)) so layers with large magnitudes dont dominate
-            feature_loss = feature_loss + F.l1_loss(freal, ffake) / torch.mean(torch.abs(freal))
-    feature_loss = feature_loss / (K*L)
+        K = len(logits_fake)
+        L = len(fmap_fake[0])
+    
+        ### Generator Loss (hinge loss) ###
+        generator_loss = 0.0
+        for lfake in logits_fake:
+            generator_loss = generator_loss + torch.mean(F.relu(1 - lfake))
+        generator_loss = generator_loss / K
+
+        ### Disc Feature Loss ###
+        feature_loss = 0.0
+        for freals, ffakes in zip(fmap_real, fmap_fake):
+            for freal, ffake in zip(freals, ffakes):
+                ### normalize by torch.mean(torch.abs(freal)) so layers with large magnitudes dont dominate
+                feature_loss = feature_loss + F.l1_loss(freal, ffake) / torch.mean(torch.abs(freal))
+
+        feature_loss = feature_loss / (K*L)
+    
+    else:
+        generator_loss = torch.tensor([0.0], dtype=output_wav.dtype, device=output_wav.device, requires_grad=True)
+        feature_loss = torch.tensor([0.0], dtype=output_wav.dtype, device=output_wav.device, requires_grad=True)
 
     return {
         "time_loss": time_loss, 
