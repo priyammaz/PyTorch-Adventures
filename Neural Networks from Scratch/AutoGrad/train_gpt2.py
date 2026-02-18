@@ -113,6 +113,8 @@ if args.run_name is not None:
 os.makedirs(path_to_experiment, exist_ok=True)
 
 ### Init DDP ###
+### If we arent training in DDP or Mixed Precision Accelerator doesnt ###
+### really do anything, just a wrapper that helps with logging essentially! ###
 accelerator = Accelerator(gradient_accumulation_steps=args.gradient_accumulation_steps,
                           mixed_precision=args.mixed_precision,
                           log_wand=args.log_wandb)

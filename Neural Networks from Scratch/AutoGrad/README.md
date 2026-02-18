@@ -1,6 +1,9 @@
 # MyTorch
 <img src="src/banner.png" alt="drawing" width="600"/>
 
+# This Project Has Moved!
+You can find the most up-to-date repo [here](https://github.com/priyammaz/MyTorch)!
+
 ## The Goal
 
 Build a relatively robust Deep Learning Framework that has the following feautures:
