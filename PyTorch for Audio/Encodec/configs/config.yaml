@@ -20,12 +20,12 @@ training_config:
   num_mels: 80
 
   ### Training Setup ###
-  total_iterations: 500000 
+  total_iterations: 250000 
   warmup_iterations: 5000
-  checkpoint_iterations: 20000
+  checkpoint_iterations: 10000
   eval_iterations: 2000
   generation_iterations: 2000
-  per_gpu_batch_size: 16
+  per_gpu_batch_size: 12
   num_workers: 16
   pin_memory: True
   max_grad_norm: 1.0
@@ -38,7 +38,7 @@ training_config:
   ### Optimizer Setup ###
   learning_rate: 0.0003
   disc_learning_rate: 0.0003
-  disc_update_prob: 0.5
+  disc_update_prob: 0.666
   beta1: 0.5 
   beta2: 0.9
 
@@ -64,7 +64,7 @@ generator_config:
   n_filters: 32
   n_residual_layers: 1
   ratios: [8, 5, 4, 2]
-  activation: Snake
+  activation: ELU
   final_activation: null
   norm: weight_norm
   kernel_size: 7
@@ -90,8 +90,8 @@ discriminator_config:
 
   ### Which Discriminators Do You Want To Use? ##
   use_multiscale_freq_discrim: True
-  use_multiscale_time_discrim: True
-  use_multiperiod_time_discrim: True
+  use_multiscale_time_discrim: False
+  use_multiperiod_time_discrim: False
 
   ### Filter Sizes (for all discriminators) ###
   filters: 32
