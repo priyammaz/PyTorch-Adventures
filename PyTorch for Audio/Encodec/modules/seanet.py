@@ -4,38 +4,7 @@ import numpy as np
 
 from .conv import SConv1d, SConvTranspose1d
 from .lstm import SLSTM
-
-class Snake(nn.Module):
-    """Acitvation function proposed in https://arxiv.org/abs/2006.08195
-    and used in SpeechTokenizer, BigvGAN and others"""
-    
-    def __init__(self, 
-                 in_features, 
-                 alpha=1.0, 
-                 use_separarate_magnitude_param=False, 
-                 params_trainable=True,
-                 eps=1e-6):
-        super().__init__()
-
-        self.eps = eps 
-
-        self.alpha = nn.Parameter(torch.ones(in_features) * alpha, requires_grad=params_trainable)
-        if use_separarate_magnitude_param:
-            self.beta = nn.Parameter(torch.ones(in_features) * alpha, requires_grad=params_trainable)
-        else:
-            self.beta = self.alpha
-
-    def forward(self, x):
-
-        ### alpha is size (in_features, ), our data is (B x in_features x T), so lets add in dimensions ###
-        ### so we can broadcast over the B and T dims ###
-        alpha = self.alpha.unsqueeze(0).unsqueeze(-1)
-        beta = self.beta.unsqueeze(0).unsqueeze(-1)
-
-        ### forward pass from paper: x + (1 / b) * sin^2(x*a)
-        x = x + (1.0 / (beta + self.eps)) * torch.sin(x * alpha).pow(2)
-
-        return x
+from .snake import Snake
 
 class SEANetResnetBlock(nn.Module):
     def __init__(self, 

@@ -19,7 +19,6 @@ def find_audio_files(root_dir, extensions, recursive=True):
         if path.is_file() and path.suffix.lower() in extensions:
             yield path.resolve()
 
-
 def save_list(paths, output_file, root_dir=None, relative=False):
     with open(output_file, "w") as f:
         for path in paths:
@@ -39,21 +38,13 @@ def main():
     parser.add_argument("--relative", action="store_true")
 
     # Split options
-    parser.add_argument("--split", action="store_true",
-                        help="Enable train/test split")
-
-    parser.add_argument("--train_ratio", type=float, default=0.9,
-                        help="Train split ratio (default: 0.9)")
-
-    parser.add_argument("--seed", type=int, default=42,
-                        help="Random seed")
-
+    parser.add_argument("--split", action="store_true", help="Enable train/test split")
+    parser.add_argument("--train_ratio", type=float, default=0.9, help="Train split ratio (default: 0.9)")
+    parser.add_argument("--seed", type=int, default=42, help="Random seed")
     parser.add_argument("--train_file", type=Path, default="data/train.txt")
     parser.add_argument("--max_train_files", type=int, default=None)
     parser.add_argument("--test_file", type=Path, default="data/test.txt")
-
-    parser.add_argument("--output", type=Path,
-                        help="Output file if not splitting")
+    parser.add_argument("--output", type=Path, help="Output file if not splitting")
 
     args = parser.parse_args()
 

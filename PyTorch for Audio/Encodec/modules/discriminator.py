@@ -354,6 +354,8 @@ class Discriminator(nn.Module):
     def __init__(self, config):
         super().__init__()
 
+        self.config = config 
+        
         self.use_multiscale_freq_discrim = False
         self.use_multiscale_time_discrim = False
         self.use_multiperiod_time_discrim = False
