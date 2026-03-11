@@ -89,8 +89,8 @@ There are a few other datasets that we will use but are inconsistent to automati
 - [**Intro to Automatic Speech Recognition**](PyTorch%20for%20Audio/Intro%20to%20Automatic%20Speech%20Recognition/) &nbsp;  [<img src="src/visuals/play_button.png" alt="drawing" style="width:30px;"/>](https://youtu.be/725Og6eyWCc) &nbsp; [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1XmHksCjSuTVbfl-URTNgiuDs2s3_jnd9?usp=sharing)
 - [**Quantized Audio Pre-Training: Wav2Vec2**](PyTorch%20for%20Audio/Wav2Vec2/)&nbsp; [<img src="src/visuals/play_button.png" alt="drawing" style="width:30px;"/>](https://youtu.be/TMjKUHSFRbw)
 - [**Intro to TTS: Tacotron2**](PyTorch%20for%20Audio/Tacotron2/)&nbsp; [<img src="src/visuals/play_button.png" alt="drawing" style="width:30px;"/>](https://youtu.be/5WxgTVDf_v8)
-- [**Neural Vocoder: HifiGAN**](PyTorch%20for%20Audio/HIFIGAN/)
-- **EnCodec**
+- [**Neural Vocoder: HifiGAN**](PyTorch%20for%20Audio/HIFIGAN/)&nbsp;  [<img src="src/visuals/play_button.png" alt="drawing" style="width:30px;"/>](https://youtu.be/725Og6eyWCc)
+- [**EnCodec**](PyTorch%20for%20Audio/Encodec/)&nbsp;  [<img src="src/visuals/play_button.png" alt="drawing" style="width:30px;"/>](https://youtu.be/725Og6eyWCc)
 - **WaveNet**
 
 ## Generative AI
