@@ -47,9 +47,16 @@ accelerate launch pretrain_mae.py \
     --log_wandb
 ```
 
-#### PreTraining Results
+### PreTraining Results
 
 The results for the pretraining can be seen [here](https://api.wandb.ai/links/exploratorydataadventure/9l3zwqz5)    
+
+
+### Reconstructions
+
+Now that we have pretrained our MAE, what do the reconstructions look like?
+
+<img src="https://github.com/priyammaz/PyTorch-Adventures/blob/main/PyTorch%20for%20Computer%20Vision/Masked%20AutoEncoder/src/mae_reconstruction.png?raw=true" alt="drawing" width="800"/>
 
 
 ## Downstream Tasks
@@ -104,7 +111,6 @@ The main takeaway here is that, we were able to beat our ViT Trained from scratc
 
 The Original MAE repo [reports](https://github.com/facebookresearch/mae/blob/main/FINETUNE.md) a 83.6% accuracy with their MAE-Base, but they also have way more gpus to train on larger batch sizes, so this is close enough!
 
-
 ### Segmentation
 
 Image classification is fine, but I wanted to do something more interesting, Image Segmentation. [This](https://huggingface.co/docs/transformers/en/model_doc/upernet) caught my eye, where I saw the UperNet model was being used as a decoder on encoders like [Swin](https://arxiv.org/abs/2103.14030) and [ConvNeXt](https://arxiv.org/abs/2201.03545) (different vision backbones). So I thought why not apply it to our MAE? Segmentation labeling is painfully slow, so the question is, if we pretrain on a ton of images and finetune on some segmentation masks can we actually get decent segmentations? I applied this method to one of my papers [Self-Supervised Digital Elevation Modeling](https://arxiv.org/abs/2309.03367) and it worked! Though at that time I was using [MMSegmentation](https://github.com/open-mmlab/mmsegmentation). Lets go ahead and implement this method!
@@ -113,7 +119,7 @@ There are two parts to this:
 
 1) We need to define the UperNet Head that includes a Pyramid Pooling Module and a Feature Pyramid Network. A lot of this code is very close to a really great package [PyTorch-Segmentation](https://github.com/yassouali/pytorch-segmentation/blob/master/models/upernet.py)
    
-<img src="https://github.com/priyammaz/PyTorch-Adventures/blob/main/src/visuals/upernet_head.png?raw=true" alt="drawing" width="600"/>
+<img src="https://raw.githubusercontent.com/priyammaz/PyTorch-Adventures/refs/heads/main/src/visuals/upernet_head.png" alt="drawing" width="600"/>
 
 2) We need to identify which encodings we want to take from our MAE. In the original UperNet, a Resnet was used, so they grabbed the output of the 4 resnet blocks. In our case, we will grab 4 outputs from our 12 transformer layers. To ensure a heirarchy of features, we will grab layers 3, 5, 7 and 11, also matching the MMSegmentation implementation. 
 
