@@ -261,7 +261,7 @@ class ViTMAEForPreTraining(nn.Module):
         if self.config.custom_weight_init:
             self.apply(_init_weights_)
 
-    def forward(self, x):
+    def forward(self, x, return_mask=False):
         
         ### Encoder and Decoder Images ###
         encoded, mask, restore_idx = self.encoder(x, mask_ratio=self.mask_ratio)
@@ -278,8 +278,11 @@ class ViTMAEForPreTraining(nn.Module):
         loss = loss.mean(dim=-1)
         loss = (loss * mask).sum() / mask.sum()
 
-        return encoded, decoded, logits, loss
-
+        if not return_mask:
+            return encoded, decoded, logits, loss
+        else:
+            return encoded, decoded, logits, loss, mask
+            
 class ViTMAEForDownstreamTasks(nn.Module):
     """
     Dummy class that holds load_backbone method to
