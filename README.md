@@ -121,7 +121,7 @@ There are a few other datasets that we will use but are inconsistent to automati
 - ### Autoregressive Generation
 
   - [**PixelRNN**](PyTorch%20for%20Generation/Autoregressive%20Generation/PixelRNN/)
-  - [**PixelCNN**](PyTorch%20for%20Generation/Autoregressive%20Generation/PixelCNN/)
+  - [**PixelCNN**](PyTorch%20for%20Generation/Autoregressive%20Generation/PixelCNN/)&nbsp; [<img src="src/visuals/play_button.png" alt="drawing" style="width:30px;"/>](https://youtu.be/9h2NekDz4ag?si=t3hAalOkfoeJ4HW3)
  
 ## Dive into Transformers ##
 
