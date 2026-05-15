@@ -11,7 +11,6 @@ from tqdm import tqdm
 
 from pixel_cnn_model import PixelCNN, generate_samples
 
-# --- Argument Parser ---
 def get_args():
     parser = argparse.ArgumentParser(description="Train PixelCNN on CIFAR-10")
     parser.add_argument("--batch_size", type=int, default=64, help="Training batch size")
