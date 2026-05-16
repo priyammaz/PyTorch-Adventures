@@ -4,19 +4,8 @@ accelerate launch pretrain.py \
     --path_to_data          "/mnt/datadrive/data/ImageNet" \
     --working_directory     "work_dir" \
     --epochs                300 \
-    --warmup_epochs         40 \
+    --warmup_epochs         15 \
     --per_gpu_batch_size    512 \
-    --learning_rate         1.5e-4 \
-    --weight_decay          0.05 \
-    --max_grad_norm         1.0 \
-    --save_checkpoint_interval 10 \
-    --encoder_embed_dim     768 \
-    --encoder_depth         12 \
-    --encoder_num_heads     12 \
-    --predictor_embed_dim   384 \
-    --predictor_depth       6 \
-    --predictor_num_heads   12 \
-    --num_target_blocks     4 \
     --num_workers           16 \
     --log_wandb
  
