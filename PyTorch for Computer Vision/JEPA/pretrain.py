@@ -362,21 +362,22 @@ for epoch in range(starting_epoch, args.epochs):
  
             # Gather loss across GPUs for logging
             loss_gathered = accelerator.gather_for_metrics(accumulated_loss)
-            train_losses.append(torch.mean(loss_gathered).item())
+            loss_gathered = torch.mean(loss_gathered).item()
+            train_losses.append(loss_gathered)
             accumulated_loss = 0.0
  
             global_step  += 1
             progress_bar.update(1)
+
+            if args.log_wandb:
+                accelerator.log({
+                    "train_loss":    loss_gathered,
+                    "learning_rate": scheduler.get_last_lr()[0],
+                    "ema_momentum":  momentum,
+                }, step=global_step)
  
     epoch_loss = float(np.mean(train_losses))
     accelerator.print(f"  Loss: {epoch_loss:.4f}  |  LR: {scheduler.get_last_lr()[0]:.2e}")
- 
-    if args.log_wandb:
-        accelerator.log({
-            "train_loss":    epoch_loss,
-            "learning_rate": scheduler.get_last_lr()[0],
-            "ema_momentum":  momentum,
-        }, step=epoch)
  
     if epoch % args.save_checkpoint_interval == 0:
         ckpt_dir = os.path.join(path_to_experiment, f"checkpoint_{epoch}")
