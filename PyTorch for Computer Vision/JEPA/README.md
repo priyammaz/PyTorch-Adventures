@@ -1,6 +1,6 @@
 # Self-Supervised Learning by Predicting Representations (I-JEPA)
 
-=<img src="imgs/masking_pattern.png" alt="drawing" width="800"/>
+<img src="imgs/masking_pattern.png" alt="drawing" width="800"/>
 
 Our [Masked AutoEncoder](../Masked%20AutoEncoder) learned by hiding 75% of the image patches and reconstructing the missing **pixels**. Although it works, consider the actual objective: to minimize the reconstruction loss, the model has to remember the exact texture of grass, the precise shade of blue in the sky, etc... None of that is actually important to the content of the object, which is what we want the representation to be about. 
 
