@@ -137,7 +137,30 @@ def parse_args():
  
     return parser.parse_args()
 
+def make_jepa_collate_fn(mask_sampler):
+    def collate_fn(batch):
+        images, _ = zip(*batch)  # labels unused
+
+        images = torch.stack(images, dim=0)  # (B, C, H, W)
+        B = images.shape[0]
+
+        # Sample masks (still on CPU)
+        context_ids, target_ids = mask_sampler.sample(B)
+
+        # reshape 
+        context_ids = context_ids[:, 0, :]       # (B, Nc)
+        target_ids  = target_ids.flatten(1)      # (B, npred * Nt)
+
+        return {
+            "images": images,
+            "context_ids": context_ids,
+            "target_ids": target_ids
+        }
+
+    return collate_fn
+
 def main():
+
     args = parse_args()
     
     ### Init Accelerator ###
@@ -172,6 +195,16 @@ def main():
     train_transforms = jepa_train_transforms(args.img_size)
     path_to_train = os.path.join(args.path_to_data, "train")
     trainset = datasets.ImageFolder(path_to_train, transform=train_transforms)
+
+    mask_sampler = IJEPAMaskSampler(
+        img_size=args.img_size, 
+        patch_size=args.patch_size, 
+        pred_mask_scale=(args.min_target_scale, args.max_target_scale), 
+        aspect_ratio=(args.min_aspect_ratio, args.max_aspect_ratio), 
+        npred=args.num_target_blocks
+    )
+    
+    collate_fn = make_jepa_collate_fn(mask_sampler)
     
     mini_batchsize = args.per_gpu_batch_size // args.gradient_accumulation_steps
     trainloader = DataLoader(
@@ -181,6 +214,7 @@ def main():
         num_workers=args.num_workers,
         pin_memory=True,
         drop_last=True,
+        collate_fn=collate_fn
     )
     
     ### Masking Sampler ###
@@ -207,7 +241,7 @@ def main():
     
     ### Schedule constants (computed in steps, not epochs) ###
     num_training_steps = len(trainloader) * args.epochs // args.gradient_accumulation_steps
-    num_warmup_steps   = len(trainloader) * args.warmup_epochs // args.gradient_accumulation_steps
+    num_warmup_steps  = len(trainloader) * args.warmup_epochs // args.gradient_accumulation_steps
 
     ### Prepare with Accelerate ###
     model, optimizer, trainloader = accelerator.prepare(
@@ -237,17 +271,12 @@ def main():
             disable=not accelerator.is_local_main_process,
         )
     
-        for images, _ in trainloader:   # labels not needed for JEPA
-            images = images.to(accelerator.device)
+        for batch in trainloader:   # labels not needed for JEPA
+            images = batch["images"].to(accelerator.device)
+            context_ids = batch["context_ids"].to(accelerator.device)
+            target_ids = batch["target_ids"].to(accelerator.device)
+            
             B = images.shape[0]
-    
-            # Sample fresh masks for this batch (on CPU, then move indices to GPU)
-            context_ids, target_ids = mask_sampler.sample(B)
-            context_ids = context_ids.to(accelerator.device)
-            target_ids = target_ids.to(accelerator.device)
-
-            context_ids = context_ids[:, 0, :] # (B, Nc)
-            target_ids  = target_ids.flatten(1) # (B, npred*Nt)
 
             with accelerator.accumulate(model):
     

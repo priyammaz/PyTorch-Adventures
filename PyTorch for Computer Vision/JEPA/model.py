@@ -365,7 +365,7 @@ class IJEPA(nn.Module):
         )
 
     @torch.no_grad()
-    def update_target_encoder(self, momentum: float | None = None):
+    def update_target_encoder(self, momentum):
         m = momentum if momentum is not None else self.ema_momentum
         for ctx_p, tgt_p in zip(
             self.context_encoder.parameters(),

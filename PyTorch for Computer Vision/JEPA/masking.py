@@ -4,6 +4,12 @@ import torch
 class IJEPAMaskSampler:
     """
     Follows the masking section in A.1 in the IJEPA paper
+
+        img_size: what is the expected size of an image
+        patch_size: what is the dimension of each patch
+        enc_mask_scale: what proportion of patches to use as context
+        pred_mask_scale: what proportion of patches to use as targets
+        aspect_ratio: height to width ratio of the selected patches
     """
     def __init__(
         self,
@@ -15,10 +21,10 @@ class IJEPAMaskSampler:
         nenc = 1,     # number of context blocks we want
         npred = 4,    # number of target blocks we want
         min_keep = 4, # smallest number of patches to be considered valid
-        allow_overlap = False,
+        allow_overlap = False, # remove overlap between our context and targets
     ):
         
-        self.height = self.width = img_size // patch_size
+        self.height = self.width = img_size // patch_size #(224 / 16 = 14 x 14 grid)
         self.num_patches = self.height * self.width
         self.enc_mask_scale = enc_mask_scale
         self.pred_mask_scale = pred_mask_scale
@@ -36,9 +42,13 @@ class IJEPAMaskSampler:
         
         """sample (h,w) for one block"""
         
+        ### select a random proportion between 0 and 1
         rand = torch.rand(1).item() # [0,1]
 
+        ### unpack min and max size from scale
         min_s, max_s = scale
+
+        ### random sample some size between these two 
         mask_scale = min_s + rand * (max_s - min_s) # some val between min_s,max_s
         max_keep = int(self.height * self.width * mask_scale) # num patches to keep
 
@@ -52,8 +62,8 @@ class IJEPAMaskSampler:
         # Clamp to grid
         while h >= self.height: h -= 1
         while w >= self.width:  w -= 1
- 
-        return h, w
+
+        return h, w 
     
     def _sample_block_mask(self, b_size, acceptable_regions=None):
         """
